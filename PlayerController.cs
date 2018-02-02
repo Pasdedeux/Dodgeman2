@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using LTool;
+using LTool.UnityMath;
 
 /// <summary>
 /// 临时用类，主要实现玩家控制
@@ -73,27 +74,24 @@ public class PlayerController : SingletonMono<PlayerController>
     void ReCalculateRotateParam()
     {
         _playerRotateTime = 0f;
-        //TODO 这里加入代码，将目标旋转角度转换为，制定时间内的速度
-        //..
     }
 
-
-
-    float VectorAngle( Vector2 from , Vector2 to )
-    {
-        float angle;
-
-        Vector3 cross = Vector3.Cross( from , to );
-        angle = Vector2.Angle( from , to );
-        return cross.z > 0 ? -angle : angle;
-    }
-
+    
 
     private void FixedUpdate()
     {
         if ( _curCmdDirection != Vector3.zero )
         {
-            
+            if( _playerRotateTime< ROTATE_TOTAL_TIME )
+            {
+                _playerRotateTime += Time.fixedDeltaTime;
+                _curPlayer.rotation = Quaternion.Slerp( _curPlayer.rotation , Quaternion.LookRotation( _curCmdDirection ) , _playerRotateTime );
+            }
+            else
+            {
+                _curCmdDirection = Vector3.zero;
+                _playerRotateTime = 0;
+            }
         }
     }
 }
