@@ -14,9 +14,9 @@ public class PlayerController : SingletonMono<PlayerController>
     //转向时间
     private const float ROTATE_TOTAL_TIME = 1f;
     //加减速时间
-    private const float SPEED_CHANGE_TIME = 1f;
+    private const float SPEED_CHANGE_TIME = 0.5f;
     //加减速所用距离
-    private const float SPEED_CHANGE_LENGTH = 1f;
+    private const float SPEED_CHANGE_LENGTH = 0.5f;
     //怪物检测层
     private const string LAYERNAME_MONSTER = "Target";
     #endregion
@@ -24,6 +24,11 @@ public class PlayerController : SingletonMono<PlayerController>
 
 
     private Transform _curPlayer;
+    public Transform CurPlayer
+    {
+        get { return _curPlayer; }
+        set { _curPlayer = value; }
+    }
     //加速时间片段长度
     private float _fixedTimeDelta;
     //旋转目标方向
@@ -44,6 +49,9 @@ public class PlayerController : SingletonMono<PlayerController>
     //玩家已加速时间
     private float _curSpeedUpTime;
 
+
+
+
     private void Awake()
     {
         _rayHitArr = new RaycastHit[ 4 ];
@@ -56,13 +64,13 @@ public class PlayerController : SingletonMono<PlayerController>
 
     void Start ()
     {
-        _curPlayer = GameObject.Find( "Roles/Player/Man" ).transform;
+       
 
     }
 	
 	void Update ()
     {
-        if ( /*!_isMoving*/true )
+        if ( !_isMoving )
         {
 #if ( UNITY_EDITOR || UNITY_STANDALONE_WIN )
             if ( Input.GetKeyUp( KeyCode.LeftArrow ) )
@@ -111,7 +119,7 @@ public class PlayerController : SingletonMono<PlayerController>
         if ( _curCmdDirection != Vector3.zero )
         {
             //转向
-            if( _curTurnTime< ROTATE_TOTAL_TIME )
+            if( _curPlayer.forward != _curCmdDirection && _curTurnTime < ROTATE_TOTAL_TIME )
             {
                 _curTurnTime += _fixedTimeDelta;
                 _curPlayer.rotation = Quaternion.Slerp( _curPlayer.rotation , Quaternion.LookRotation( _curCmdDirection ) , _curTurnTime );
@@ -119,15 +127,6 @@ public class PlayerController : SingletonMono<PlayerController>
             //移动
             else
             {
-                //TODO 下面的加速/减速出现重叠情况
-                //
-                if ( _curSpeedUpTime < SPEED_CHANGE_TIME )
-                {
-                    Debug.Log( "开始加速" );
-                    _curSpeedUpTime += _fixedTimeDelta;
-                    _playerMoveSpeed += _speedUpRatio * _fixedTimeDelta;
-                }
-
                 if ( Vector3.Distance( _curPlayer.position, _targetPosistion )<= SPEED_CHANGE_LENGTH )
                 {
                     Debug.Log( "开始减速" );
@@ -141,6 +140,15 @@ public class PlayerController : SingletonMono<PlayerController>
                         _curPlayer.position = _targetPosistion;
                         Debug.Log( "到达指定位置" );
                         StopControlParam();
+                    }
+                }
+                else
+                {
+                    if ( _curSpeedUpTime < SPEED_CHANGE_TIME )
+                    {
+                        Debug.Log( "开始加速" );
+                        _curSpeedUpTime += _fixedTimeDelta;
+                        _playerMoveSpeed += _speedUpRatio * _fixedTimeDelta;
                     }
                 }
 
