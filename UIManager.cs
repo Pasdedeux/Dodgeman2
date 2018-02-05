@@ -9,9 +9,7 @@ using UnityEngine.SceneManagement;
 
 
 /// <summary>
-/// 1、完成第二关的关卡跳转，到主菜单
 /// 2、加入滚动形象
-/// 3、细化场景
 /// </summary>
 
 
@@ -46,10 +44,18 @@ public class UIManager : SingletonMono<UIManager>
 
         yield return _waitTime;
 
-        PlayerController.Instance.CurPlayer = GameObject.Find( "Roles/Player/Man" ).transform;
-
         fadeBG.raycastTarget = false;
         fadeBG.CrossFadeAlpha( 0 , 0.5f , true );
 
+        //查找目标点
+        var player = GameObject.Find( "Roles/Player/Man" );
+        if( player != null )
+            PlayerController.Instance.CurPlayer = player.transform;
+
+        //TODO LoadingScene
+        if( targetLevel == 0 )
+        {
+            Destroy( GameObject.Find( "Managers" ) );
+        }
     }
 }
