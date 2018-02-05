@@ -164,9 +164,8 @@ public class PlayerController : SingletonMono<PlayerController>
                 }
 
                 _curPlayer.position = Vector3.MoveTowards( _curPlayer.position , _targetPosistion , _playerMoveSpeed * _fixedTimeDelta );
-                Debug.Log( Time.frameCount );
                 //--滚动
-                _curPlayer.Rotate( Vector3.right , _playerRollSpeed * _fixedTimeDelta , Space.Self );
+                _curPlayer.Rotate( Vector3.right , -_playerRollSpeed * _fixedTimeDelta , Space.Self );
             }
         }
     }
