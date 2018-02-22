@@ -160,7 +160,7 @@ public class PlayerController : SingletonMono<PlayerController>
                     {
                         if( id.type == ObjectType.Points )
                         {
-                            UIManager.Instance.StartFade( id.ID );
+                            UIManager.Instance.StartFade( id.id );
                         }
                     }
 

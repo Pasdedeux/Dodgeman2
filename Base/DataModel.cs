@@ -79,30 +79,29 @@ public enum ObstaclesType
 /// <summary>
 /// 点位类型
 /// </summary>
-[Flags]
 public enum PointsType
 {
-    None = 1 << 0,
+    None,
     /// <summary>
     /// 玩家出生点
     /// </summary>
-    PlayerPoint = 1 << 1,
+    PlayerPoint,
     /// <summary>
     /// 金币点
     /// </summary>
-    GoldPoint = 1 << 2,
+    GoldPoint ,
     /// <summary>
     /// 怪物诞生点
     /// </summary>
-    MonsterPoint = 1 << 3,
+    MonsterPoint,
     /// <summary>
     /// 道具诞生点
     /// </summary>
-    PropPoint = 1 << 4,
+    PropPoint ,
     /// <summary>
     /// 传送点出口
     /// </summary>
-    TransferPointExit = 1 << 5,
+    TransferPointExit,
 }
 
 /// <summary>
