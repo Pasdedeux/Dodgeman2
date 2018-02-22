@@ -62,6 +62,10 @@ public class PlayerController : SingletonMono<PlayerController>
     //玩家需要滚动的角度
     private float _rollDegree;
 
+    //
+    private static Vector3 DEST_POINT = new Vector3();
+    private static Vector2 PLAYE_POS = new Vector2();
+    private static Vector2 DEST_POS = new Vector2();
 
 
     private void Awake()
@@ -134,8 +138,14 @@ public class PlayerController : SingletonMono<PlayerController>
     {
         if ( _curCmdDirection != Vector3.zero )
         {
+            PLAYE_POS.x = _curPlayer.position.x;
+            PLAYE_POS.y = _curPlayer.position.z;
+
+            DEST_POS.x = _targetPosistion.x;
+            DEST_POS.y = _targetPosistion.z;
+
             //--移动
-            if( Vector3.Distance( _curPlayer.position , _targetPosistion ) < SPEED_CHANGE_LENGTH ) 
+            if( Vector2.Distance( PLAYE_POS , DEST_POS ) < SPEED_CHANGE_LENGTH ) 
             {
                 _curSpeedUpTime -= _fixedTimeDelta;
                 _playerMoveSpeed -= _speedUpRatio * _fixedTimeDelta;
@@ -153,7 +163,12 @@ public class PlayerController : SingletonMono<PlayerController>
 
                     _curSpeedUpTime = 0;
                     _playerMoveSpeed = 0;
-                    _curPlayer.position = _targetPosistion;
+
+                    DEST_POINT.x = _targetPosistion.x;
+                    DEST_POINT.z = _targetPosistion.z;
+                    DEST_POINT.y = _curPlayer.position.y;
+
+                    _curPlayer.position = DEST_POINT;
 
                     var id = _targetObject.GetComponent<Identity>();
                     if( id != null )
@@ -183,7 +198,9 @@ public class PlayerController : SingletonMono<PlayerController>
                 }
             }
 
-            _curPlayer.position = Vector3.MoveTowards( _curPlayer.position , _targetPosistion , _playerMoveSpeed * _fixedTimeDelta );
+            DEST_POINT = Vector3.MoveTowards( _curPlayer.position , _targetPosistion , _playerMoveSpeed * _fixedTimeDelta );
+            DEST_POINT.y = _curPlayer.position.y;
+            _curPlayer.position = DEST_POINT;
 
             //--滚动
             if( _curRollTime < _playerRollTime )
