@@ -32,6 +32,8 @@ public class PlayerController : SingletonMono<PlayerController>
     private float _fixedTimeDelta;
     //转向目标方向
     private Vector3 _curCmdDirection = Vector3.zero;
+    //转动轴
+    private Vector3 _rotateAxis = Vector3.zero;
     //玩家角色已旋转时间
     private float _curTurnTime = 0f;
     //碰撞检测
@@ -95,10 +97,24 @@ public class PlayerController : SingletonMono<PlayerController>
             }
 
 #elif UNITY_IPHONE || UNITY_ANDROID
-         
+            switch( TouchInput.Instance.GetTouchMoveDirection() )
+            {
+                case TouchDirection.Up:
+                    _curCmdDirection = Vector3.right;
+                    break;
+                case TouchDirection.Down:
+                    _curCmdDirection = Vector3.left;
+                    break;
+                case TouchDirection.Left:
+                    _curCmdDirection = Vector3.forward;
+                    break;
+                case TouchDirection.Right:
+                    _curCmdDirection = Vector3.back;
+                    break;
+            }
 #endif
 
-            if ( !_isMoving && _curCmdDirection != Vector3.zero )
+            if( !_isMoving && _curCmdDirection != Vector3.zero )
             {
                 if ( CanPassDetection( _curPlayer.position , _curCmdDirection ) )
                 {
@@ -117,56 +133,46 @@ public class PlayerController : SingletonMono<PlayerController>
     {
         if ( _curCmdDirection != Vector3.zero )
         {
-            //转向
-            if( /*_curPlayer.forward != _curCmdDirection &&*/ _curTurnTime < ROTATE_TOTAL_TIME )
+            //移动
+            if ( Vector3.Distance( _curPlayer.position, _targetPosistion )<= SPEED_CHANGE_LENGTH )
             {
-                Debug.Log( "<color=red>asdasd</color>" );
-                _curTurnTime += _fixedTimeDelta;
-                _curPlayer.rotation = Quaternion.Slerp( _curPlayer.rotation , Quaternion.LookRotation( _curCmdDirection ) , _curTurnTime/ ROTATE_TOTAL_TIME );
+                _curSpeedUpTime -= _fixedTimeDelta;
+                _playerMoveSpeed -= _speedUpRatio * _fixedTimeDelta;
+
+                if ( _curSpeedUpTime <=0 )
+                {
+                    _curSpeedUpTime = 0;
+                    _playerMoveSpeed = 0;
+                    _playerRollSpeed = 0;
+                    _curPlayer.position = _targetPosistion;
+                    _curPlayer.localRotation = Quaternion.LookRotation( _curCmdDirection );
+
+                    Debug.Log( "到达指定位置" );
+                    var id = _targetObject.GetComponent<Identity>();
+                    if( id != null )
+                    {
+                        if( id.type == ObjectType.Points )
+                        {
+                            UIManager.Instance.StartFade( id.ID );
+                        }
+                    }
+
+                    StopControlParam();
+                }
             }
             else
             {
-                Debug.Log( "<color=green>asdasd</color>" );
-                //移动
-                if ( Vector3.Distance( _curPlayer.position, _targetPosistion )<= SPEED_CHANGE_LENGTH )
+                if ( _curSpeedUpTime < SPEED_CHANGE_TIME )
                 {
-                    _curSpeedUpTime -= _fixedTimeDelta;
-                    _playerMoveSpeed -= _speedUpRatio * _fixedTimeDelta;
-
-                    if ( _curSpeedUpTime <=0 )
-                    {
-                        _curSpeedUpTime = 0;
-                        _playerMoveSpeed = 0;
-                        _playerRollSpeed = 0;
-                        _curPlayer.position = _targetPosistion;
-                        _curPlayer.localRotation = Quaternion.LookRotation( _curCmdDirection );
-
-                        Debug.Log( "到达指定位置" );
-                        var id = _targetObject.GetComponent<Identity>();
-                        if( id != null )
-                        {
-                            if( id.type == ObjectType.Points )
-                            {
-                                UIManager.Instance.StartFade( id.ID );
-                            }
-                        }
-
-                        StopControlParam();
-                    }
+                    _curSpeedUpTime += _fixedTimeDelta;
+                    _playerMoveSpeed += _speedUpRatio * _fixedTimeDelta;
                 }
-                else
-                {
-                    if ( _curSpeedUpTime < SPEED_CHANGE_TIME )
-                    {
-                        _curSpeedUpTime += _fixedTimeDelta;
-                        _playerMoveSpeed += _speedUpRatio * _fixedTimeDelta;
-                    }
-                }
-
-                _curPlayer.position = Vector3.MoveTowards( _curPlayer.position , _targetPosistion , _playerMoveSpeed * _fixedTimeDelta );
-                //--滚动
-                _curPlayer.Rotate( Vector3.right , -_playerRollSpeed * _fixedTimeDelta , Space.Self );
             }
+
+            _curPlayer.position = Vector3.MoveTowards( _curPlayer.position , _targetPosistion , _playerMoveSpeed * _fixedTimeDelta );
+
+            //滚动
+            _curPlayer.Rotate( _rotateAxis , _playerRollSpeed * _fixedTimeDelta , Space.World );
         }
     }
 
@@ -202,7 +208,9 @@ public class PlayerController : SingletonMono<PlayerController>
 
         //滚动参数
         _curRollTime = 0f;
-        _rollDegree = 360 * distance;
+        _rotateAxis = Quaternion.AngleAxis( -90 , Vector3.up ) * _curCmdDirection;
+        _rollDegree = 90 * distance;
+
         _playerRollTime = 2 * SPEED_CHANGE_TIME + ( distance - 2 * SPEED_CHANGE_LENGTH ) / ( _speedUpRatio * SPEED_CHANGE_TIME );
         _playerRollSpeed = _rollDegree / _playerRollTime;
     }
@@ -227,6 +235,7 @@ public class PlayerController : SingletonMono<PlayerController>
         //TODO 射线根据当前摄像机角度做了修正
         //..
         Debug.DrawRay( oriPoint , direction * -100 , Color.red , 1f );
+
         if ( Physics.RaycastNonAlloc( oriPoint , -1 * direction , _rayHitArr , 100 , 1 << LayerMask.NameToLayer( LAYERNAME_MONSTER ) ) > 0 )
         {
             var hitinfo = _rayHitArr[ 0 ].transform;
