@@ -129,25 +129,32 @@ public class PlayerController : SingletonMono<PlayerController>
     }
 
 
+    float ___speedDownTime = 0f;
     private void FixedUpdate()
     {
         if ( _curCmdDirection != Vector3.zero )
         {
-            //移动
-            if ( Vector3.Distance( _curPlayer.position, _targetPosistion )<= SPEED_CHANGE_LENGTH )
+            //--移动
+            if( Vector3.Distance( _curPlayer.position , _targetPosistion ) < SPEED_CHANGE_LENGTH ) 
             {
                 _curSpeedUpTime -= _fixedTimeDelta;
                 _playerMoveSpeed -= _speedUpRatio * _fixedTimeDelta;
 
-                if ( _curSpeedUpTime <=0 )
+                //TODO
+                ___speedDownTime += _fixedTimeDelta;
+
+                //计算float精度有问题，判断并不准确，用这种方式处理
+                if( _curSpeedUpTime < _fixedTimeDelta )
                 {
+                    //TODO
+                    Debug.Log( "减速耗时 " + ___speedDownTime );
+                    Debug.Log( "到达指定位置 " );
+                    ___speedDownTime = 0f;
+
                     _curSpeedUpTime = 0;
                     _playerMoveSpeed = 0;
-                    _playerRollSpeed = 0;
                     _curPlayer.position = _targetPosistion;
-                    _curPlayer.localRotation = Quaternion.LookRotation( _curCmdDirection );
 
-                    Debug.Log( "到达指定位置" );
                     var id = _targetObject.GetComponent<Identity>();
                     if( id != null )
                     {
@@ -162,17 +169,28 @@ public class PlayerController : SingletonMono<PlayerController>
             }
             else
             {
-                if ( _curSpeedUpTime < SPEED_CHANGE_TIME )
+                //计算float精度有问题，判断并不准确，用这种方式处理
+                if( _curSpeedUpTime < SPEED_CHANGE_TIME )
                 {
                     _curSpeedUpTime += _fixedTimeDelta;
                     _playerMoveSpeed += _speedUpRatio * _fixedTimeDelta;
+
+                    if( _curSpeedUpTime > SPEED_CHANGE_TIME - _fixedTimeDelta )
+                    {
+                        Debug.Log( "加速耗时: " + _curSpeedUpTime );
+                        _curSpeedUpTime = SPEED_CHANGE_TIME;
+                    }
                 }
             }
 
             _curPlayer.position = Vector3.MoveTowards( _curPlayer.position , _targetPosistion , _playerMoveSpeed * _fixedTimeDelta );
 
-            //滚动
-            _curPlayer.Rotate( _rotateAxis , _playerRollSpeed * _fixedTimeDelta , Space.World );
+            //--滚动
+            if( _curRollTime < _playerRollTime )
+            {
+                _curRollTime += _fixedTimeDelta;
+                _curPlayer.Rotate( _rotateAxis , _playerRollSpeed * _fixedTimeDelta , Space.World );
+            }
         }
     }
 
@@ -212,6 +230,9 @@ public class PlayerController : SingletonMono<PlayerController>
         _rollDegree = 90 * distance;
 
         _playerRollTime = 2 * SPEED_CHANGE_TIME + ( distance - 2 * SPEED_CHANGE_LENGTH ) / ( _speedUpRatio * SPEED_CHANGE_TIME );
+
+        Debug.Log( "滚动预估时间 " + _playerRollTime );
+
         _playerRollSpeed = _rollDegree / _playerRollTime;
     }
 
