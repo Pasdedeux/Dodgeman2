@@ -19,6 +19,8 @@ public class PlayerController : SingletonMono<PlayerController>
     private const float SPEED_CHANGE_LENGTH = 0.5f;
     //怪物检测层
     private const string LAYERNAME_MONSTER = "Target";
+    //墙体检测层
+    private const string LAYERNAME_WALL = "Wall";
     //下坠路线的默认移动速度
     private const float PLAYER_MOVE_SPEED_FALL = 5F;
     //下坠路线的默认旋转速度
@@ -137,11 +139,11 @@ public class PlayerController : SingletonMono<PlayerController>
 
             if( !_isMoving && _curCmdDirection != Vector3.zero )
             {
-                if ( CanPassDetection( _curPlayer.position , _curCmdDirection ) )
+                if ( CanPassDetection( _curPlayer.position , _curCmdDirection , LAYERNAME_MONSTER) )
                 {
                     StartControlParam();
                 }
-                else
+                else if( CanPassDetection( _curPlayer.position , _curCmdDirection , LAYERNAME_WALL ) )
                 {
                     //_curCmdDirection = Vector3.zero;
                     StartControlParam( true );
@@ -157,8 +159,8 @@ public class PlayerController : SingletonMono<PlayerController>
         if ( _curCmdDirection != Vector3.zero )
         {
             //=========================正常路线
-            if( !_isSelfKill )
-            {
+            //if( !_isSelfKill )
+            { 
                 PLAYE_POS.x = _curPlayer.position.x;
                 PLAYE_POS.y = _curPlayer.position.z;
 
@@ -200,6 +202,13 @@ public class PlayerController : SingletonMono<PlayerController>
                             }
                         }
                         StopControlParam();
+
+                        if( _isSelfKill )
+                        {
+                            Debug.Log( "播放坠落动画" );
+                            _playerColliderBox.enabled = true;
+                            _playerRigidBody.useGravity = true;
+                        }
                     }
                 }
                 else
@@ -230,12 +239,12 @@ public class PlayerController : SingletonMono<PlayerController>
                 }
             }
 
-            //=========================坠落路线
-            else
-            {
-                _curPlayer.Translate( -1 * _curCmdDirection * _playerMoveSpeedFall * _fixedTimeDelta , Space.World );
-                _curPlayer.Rotate( _rotateAxis , _playerRollSpeedFall * _fixedTimeDelta , Space.World );
-            }
+            ////=========================坠落路线
+            //else
+            //{
+            //    _curPlayer.Translate( -1 * _curCmdDirection * _playerMoveSpeedFall * _fixedTimeDelta , Space.World );
+            //    _curPlayer.Rotate( _rotateAxis , _playerRollSpeedFall * _fixedTimeDelta , Space.World );
+            //}
         }
     }
 
@@ -264,8 +273,8 @@ public class PlayerController : SingletonMono<PlayerController>
         //滚动轴
         _rotateAxis = Quaternion.AngleAxis( -90 , Vector3.up ) * _curCmdDirection;
 
-        if( !selfKill )
-        {
+        //if( !selfKill )
+        //{
             var distance = Vector3.Distance( _curPlayer.position , _targetPosistion );
             //重制参数视为开始运动
             _isMoving = true;
@@ -286,13 +295,13 @@ public class PlayerController : SingletonMono<PlayerController>
 
             _playerRollSpeed = _rollDegree / _playerRollTime;
             _playerRollSpeedFall = _playerRollSpeed;
-        }
-        else
-        {
-            _isMoving = true;
-            _playerColliderBox.enabled = true;
-            _playerRigidBody.useGravity = true;
-        }
+        //}
+        //else
+        //{
+        //    _isMoving = true;
+        //    _playerColliderBox.enabled = true;
+        //    _playerRigidBody.useGravity = true;
+        //}
     }
 
 
@@ -310,12 +319,12 @@ public class PlayerController : SingletonMono<PlayerController>
 
 
 
-    private bool CanPassDetection( Vector3 oriPoint , Vector3 direction )
+    private bool CanPassDetection( Vector3 oriPoint , Vector3 direction , string layer )
     {
         //TODO 射线根据当前摄像机角度做了修正
         Debug.DrawRay( oriPoint , direction * -100 , Color.red , 1f );
 
-        if ( Physics.RaycastNonAlloc( oriPoint , -1 * direction , _rayHitArr , 100 , 1 << LayerMask.NameToLayer( LAYERNAME_MONSTER ) ) > 0 )
+        if ( Physics.RaycastNonAlloc( oriPoint , -1 * direction , _rayHitArr , 100 , 1 << LayerMask.NameToLayer( layer ) ) > 0 )
         {
             var hitinfo = _rayHitArr[ 0 ].transform;
             _targetObject = hitinfo;
