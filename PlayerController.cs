@@ -19,6 +19,11 @@ public class PlayerController : SingletonMono<PlayerController>
     private const float SPEED_CHANGE_LENGTH = 0.5f;
     //怪物检测层
     private const string LAYERNAME_MONSTER = "Target";
+    //下坠路线的默认移动速度
+    private const float PLAYER_MOVE_SPEED_FALL = 5F;
+    //下坠路线的默认旋转速度
+    private const float PLAYER_ROLL_SPEED_FALL = 380f;
+
     #endregion
 
     
@@ -26,12 +31,23 @@ public class PlayerController : SingletonMono<PlayerController>
     public Transform CurPlayer
     {
         get { return _curPlayer; }
-        set { _curPlayer = value; }
+        set
+        {
+            _curPlayer = value;
+            _playerRigidBody = _curPlayer.GetComponentInChildren<Rigidbody>();
+            _playerColliderBox = _curPlayer.GetComponentInChildren<BoxCollider>();
+        }
     }
+    //玩家刚体+碰撞盒
+    private Rigidbody _playerRigidBody;
+    private BoxCollider _playerColliderBox;
+
     //加速时间片段长度
     private float _fixedTimeDelta;
     //转向目标方向
     private Vector3 _curCmdDirection = Vector3.zero;
+    //转动轴
+    private Vector3 _rotateAxis = Vector3.zero;
     //玩家角色已旋转时间
     private float _curTurnTime = 0f;
     //碰撞检测
@@ -45,6 +61,7 @@ public class PlayerController : SingletonMono<PlayerController>
     private bool _isMoving = false;
     //玩家角色当前移动速度
     private float _playerMoveSpeed = 0f;
+    private float _playerMoveSpeedFall = 0f;
     //玩家加速度
     private float _speedUpRatio;
     //玩家已加速时间
@@ -53,6 +70,7 @@ public class PlayerController : SingletonMono<PlayerController>
 
     //玩家滚动速度
     private float _playerRollSpeed;
+    private float _playerRollSpeedFall;
     //玩家滚动时间
     private float _playerRollTime;
     //玩家已滚动时间
@@ -60,7 +78,12 @@ public class PlayerController : SingletonMono<PlayerController>
     //玩家需要滚动的角度
     private float _rollDegree;
 
+    //
+    private static Vector3 DEST_POINT = new Vector3();
+    private static Vector2 PLAYE_POS = new Vector2();
+    private static Vector2 DEST_POS = new Vector2();
 
+    private bool _isSelfKill = false;
 
     private void Awake()
     {
@@ -95,10 +118,24 @@ public class PlayerController : SingletonMono<PlayerController>
             }
 
 #elif UNITY_IPHONE || UNITY_ANDROID
-         
+            switch( TouchInput.Instance.GetTouchMoveDirection() )
+            {
+                case TouchDirection.Up:
+                    _curCmdDirection = Vector3.right;
+                    break;
+                case TouchDirection.Down:
+                    _curCmdDirection = Vector3.left;
+                    break;
+                case TouchDirection.Left:
+                    _curCmdDirection = Vector3.forward;
+                    break;
+                case TouchDirection.Right:
+                    _curCmdDirection = Vector3.back;
+                    break;
+            }
 #endif
 
-            if ( !_isMoving && _curCmdDirection != Vector3.zero )
+            if( !_isMoving && _curCmdDirection != Vector3.zero )
             {
                 if ( CanPassDetection( _curPlayer.position , _curCmdDirection ) )
                 {
@@ -106,66 +143,98 @@ public class PlayerController : SingletonMono<PlayerController>
                 }
                 else
                 {
-                    _curCmdDirection = Vector3.zero;
+                    //_curCmdDirection = Vector3.zero;
+                    StartControlParam( true );
                 }
             }
         }
     }
 
 
+    //float ___speedDownTime = 0f;
     private void FixedUpdate()
     {
         if ( _curCmdDirection != Vector3.zero )
         {
-            //转向
-            if( /*_curPlayer.forward != _curCmdDirection &&*/ _curTurnTime < ROTATE_TOTAL_TIME )
+            //=========================正常路线
+            if( !_isSelfKill )
             {
-                Debug.Log( "<color=red>asdasd</color>" );
-                _curTurnTime += _fixedTimeDelta;
-                _curPlayer.rotation = Quaternion.Slerp( _curPlayer.rotation , Quaternion.LookRotation( _curCmdDirection ) , _curTurnTime/ ROTATE_TOTAL_TIME );
-            }
-            else
-            {
-                Debug.Log( "<color=green>asdasd</color>" );
-                //移动
-                if ( Vector3.Distance( _curPlayer.position, _targetPosistion )<= SPEED_CHANGE_LENGTH )
+                PLAYE_POS.x = _curPlayer.position.x;
+                PLAYE_POS.y = _curPlayer.position.z;
+
+                DEST_POS.x = _targetPosistion.x;
+                DEST_POS.y = _targetPosistion.z;
+
+                //--移动
+                if( Vector2.Distance( PLAYE_POS , DEST_POS ) < SPEED_CHANGE_LENGTH )
                 {
                     _curSpeedUpTime -= _fixedTimeDelta;
                     _playerMoveSpeed -= _speedUpRatio * _fixedTimeDelta;
 
-                    if ( _curSpeedUpTime <=0 )
+                    ////TODO
+                    //___speedDownTime += _fixedTimeDelta;
+
+                    //计算float精度有问题，判断并不准确，用这种方式处理
+                    if( _curSpeedUpTime < _fixedTimeDelta )
                     {
+                        //TODO
+                        //Debug.Log( "减速耗时 " + ___speedDownTime );
+                        Debug.Log( "到达指定位置 " );
+                        //___speedDownTime = 0f;
+
                         _curSpeedUpTime = 0;
                         _playerMoveSpeed = 0;
-                        _playerRollSpeed = 0;
-                        _curPlayer.position = _targetPosistion;
-                        _curPlayer.localRotation = Quaternion.LookRotation( _curCmdDirection );
 
-                        Debug.Log( "到达指定位置" );
+                        DEST_POINT.x = _targetPosistion.x;
+                        DEST_POINT.z = _targetPosistion.z;
+                        DEST_POINT.y = _curPlayer.position.y;
+
+                        _curPlayer.position = DEST_POINT;
+
                         var id = _targetObject.GetComponent<Identity>();
                         if( id != null )
                         {
                             if( id.type == ObjectType.Points )
                             {
-                                UIManager.Instance.StartFade( id.ID );
+                                UIManager.Instance.StartFade( id.id );
                             }
                         }
-
                         StopControlParam();
                     }
                 }
                 else
                 {
-                    if ( _curSpeedUpTime < SPEED_CHANGE_TIME )
+                    //计算float精度有问题，判断并不准确，用这种方式处理
+                    if( _curSpeedUpTime < SPEED_CHANGE_TIME )
                     {
                         _curSpeedUpTime += _fixedTimeDelta;
                         _playerMoveSpeed += _speedUpRatio * _fixedTimeDelta;
+
+                        if( _curSpeedUpTime > SPEED_CHANGE_TIME - _fixedTimeDelta )
+                        {
+                            Debug.Log( "加速耗时: " + _curSpeedUpTime );
+                            _curSpeedUpTime = SPEED_CHANGE_TIME;
+                            //_playerMoveSpeedFall = _playerMoveSpeed;
+                        }
                     }
                 }
 
-                _curPlayer.position = Vector3.MoveTowards( _curPlayer.position , _targetPosistion , _playerMoveSpeed * _fixedTimeDelta );
+                DEST_POINT = _targetPosistion;
+                _curPlayer.position = Vector3.MoveTowards( _curPlayer.position , DEST_POINT , _playerMoveSpeed * _fixedTimeDelta );
+
                 //--滚动
-                _curPlayer.Rotate( Vector3.right , -_playerRollSpeed * _fixedTimeDelta , Space.Self );
+                if( _curRollTime < _playerRollTime )
+                {
+                    _curRollTime += _fixedTimeDelta;
+                    _curPlayer.Rotate( _rotateAxis , _playerRollSpeed * _fixedTimeDelta , Space.World );
+                }
+            }
+
+            //=========================坠落路线
+            else
+            {
+                _curPlayer.Translate( -1 * _curCmdDirection * _playerMoveSpeedFall * _fixedTimeDelta , Space.World );
+                _curPlayer.Rotate( _rotateAxis , _playerRollSpeedFall * _fixedTimeDelta , Space.World );
             }
         }
     }
@@ -180,6 +249,8 @@ public class PlayerController : SingletonMono<PlayerController>
     private void CalculateControlParam()
     {
         _speedUpRatio = SPEED_CHANGE_LENGTH * 2f / ( SPEED_CHANGE_TIME * SPEED_CHANGE_TIME );
+        _playerRollSpeedFall = PLAYER_ROLL_SPEED_FALL;
+        _playerMoveSpeedFall = PLAYER_MOVE_SPEED_FALL;
     }
 
 
@@ -187,24 +258,41 @@ public class PlayerController : SingletonMono<PlayerController>
     /// <summary>
     /// 运动开始前准备更改参数
     /// </summary>
-    void StartControlParam()
+    void StartControlParam( bool selfKill = false )
     {
-        var distance = Vector3.Distance( _curPlayer.position , _targetPosistion );
+        _isSelfKill = selfKill;
+        //滚动轴
+        _rotateAxis = Quaternion.AngleAxis( -90 , Vector3.up ) * _curCmdDirection;
 
-        //重制参数视为开始运动
-        _isMoving = true;
-        //旋转参数
-        _curTurnTime = 0f;
+        if( !selfKill )
+        {
+            var distance = Vector3.Distance( _curPlayer.position , _targetPosistion );
+            //重制参数视为开始运动
+            _isMoving = true;
+            //旋转参数
+            _curTurnTime = 0f;
 
-        //移动参数
-        _curSpeedUpTime = 0f;
-        _playerMoveSpeed = 0f;
+            //移动参数
+            _curSpeedUpTime = 0f;
+            _playerMoveSpeed = 0f;
 
-        //滚动参数
-        _curRollTime = 0f;
-        _rollDegree = 360 * distance;
-        _playerRollTime = 2 * SPEED_CHANGE_TIME + ( distance - 2 * SPEED_CHANGE_LENGTH ) / ( _speedUpRatio * SPEED_CHANGE_TIME );
-        _playerRollSpeed = _rollDegree / _playerRollTime;
+            //滚动参数
+            _curRollTime = 0f;
+            _rollDegree = 90 * distance;
+
+            _playerRollTime = 2 * SPEED_CHANGE_TIME + ( distance - 2 * SPEED_CHANGE_LENGTH ) / ( _speedUpRatio * SPEED_CHANGE_TIME );
+
+            Debug.Log( "滚动预估时间 " + _playerRollTime );
+
+            _playerRollSpeed = _rollDegree / _playerRollTime;
+            _playerRollSpeedFall = _playerRollSpeed;
+        }
+        else
+        {
+            _isMoving = true;
+            _playerColliderBox.enabled = true;
+            _playerRigidBody.useGravity = true;
+        }
     }
 
 
@@ -225,8 +313,8 @@ public class PlayerController : SingletonMono<PlayerController>
     private bool CanPassDetection( Vector3 oriPoint , Vector3 direction )
     {
         //TODO 射线根据当前摄像机角度做了修正
-        //..
         Debug.DrawRay( oriPoint , direction * -100 , Color.red , 1f );
+
         if ( Physics.RaycastNonAlloc( oriPoint , -1 * direction , _rayHitArr , 100 , 1 << LayerMask.NameToLayer( LAYERNAME_MONSTER ) ) > 0 )
         {
             var hitinfo = _rayHitArr[ 0 ].transform;
@@ -236,6 +324,8 @@ public class PlayerController : SingletonMono<PlayerController>
         }
         return false;
     }
+
+
 
 
 
