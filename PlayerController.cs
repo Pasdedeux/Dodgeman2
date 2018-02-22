@@ -199,7 +199,6 @@ public class PlayerController : SingletonMono<PlayerController>
                                 UIManager.Instance.StartFade( id.id );
                             }
                         }
-
                         StopControlParam();
                     }
                 }
