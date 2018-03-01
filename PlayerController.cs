@@ -328,7 +328,7 @@ public class PlayerController : SingletonMono<PlayerController>
         {
             var hitinfo = _rayHitArr[ 0 ].transform;
             _targetObject = hitinfo;
-            _targetPosistion = _targetObject.position + new Vector3( 0 , 0.5f , 0 );
+            _targetPosistion = _targetObject.position;
             return true;
         }
         return false;
