@@ -3,18 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using LTool;
 using UnityEngine.UI;
-using DG.Tweening;
 using System;
-using UnityEngine.SceneManagement;
 
 
 /// <summary>
 /// 2、加入滚动形象
 /// </summary>
-
-
-
-public class UIManager : SingletonMono<UIManager>
+public class SceneManager : SingletonMono<SceneManager>
 {
     //转场背景时间
     public Image fadeBG;
@@ -40,7 +35,7 @@ public class UIManager : SingletonMono<UIManager>
         fadeBG.CrossFadeAlpha( 1 , 0.5f , true );
         yield return _waitTime;
 
-        SceneManager.LoadScene( targetLevel );
+        UnityEngine.SceneManagement.SceneManager.LoadScene( targetLevel );
 
         yield return _waitTime;
 
