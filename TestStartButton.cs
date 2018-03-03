@@ -6,6 +6,6 @@ public class TestStartButton : MonoBehaviour {
 
     public void StartGame()
     {
-        UIManager.Instance.StartFade( 1 );
+        SceneManager.Instance.StartFade( 1 );
     }
 }
