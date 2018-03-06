@@ -15,32 +15,35 @@ public class Identity : MonoBehaviour
     /// </summary>
     public IRole role;
 
+    public int id;
+    [HideInInspector]
+    public int gold;
     /// <summary>
     /// 物体身份类型
     /// </summary>
     public ObjectType type;
 
+    [HideInInspector]
     /// <summary>
     /// 障碍物类型
     /// </summary>
     public ObstaclesType obstacleType;
-
+    [HideInInspector]
     /// <summary>
     /// 点位类型
     /// </summary>
     public PointsType pointsType;
-
+    [HideInInspector]
     /// <summary>
     /// 道具类型
     /// </summary>
     public PropType propType;
-
-   /// <summary>
-   /// 角色类型
-   /// </summary>
+    [HideInInspector]
+    /// <summary>
+    /// 角色类型
+    /// </summary>
     public RolesType rolesType;
 
-    public int ID,Score;
 
 
     void Start( )
@@ -48,6 +51,7 @@ public class Identity : MonoBehaviour
         //根据type信息添加组件
         TypeFilter();
     }
+
 
     private void TypeFilter( )
     {
@@ -57,7 +61,10 @@ public class Identity : MonoBehaviour
 
                 break;
             case ObjectType.Obstacles:
-                
+                if( obstacleType == ObstaclesType.AirObstacle )
+                {
+                    GetComponent<MeshRenderer>().enabled = false;
+                }
                 break;
             case ObjectType.Points:
 
