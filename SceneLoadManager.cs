@@ -15,6 +15,8 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
     private Dictionary<int , LevelClass> _levelInfoDict = new Dictionary<int , LevelClass>();
     //转场背景时间
     public Image fadeBG;
+    public Camera uiCam;
+    public Camera mainCam;
     //转场时间
     private WaitForSeconds _waitTime = new WaitForSeconds( 0.5f );
 
@@ -37,6 +39,9 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
         fadeBG.CrossFadeAlpha( 1 , 0.5f , true );
         yield return _waitTime;
 
+
+        //TODO 需要判断当前关卡是否存在----用于打通关时候的判断
+        //..
         AsyncOperation sceneprocess;
         //场景内容加载
         if( targetLevel == 0 )
@@ -68,23 +73,26 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
                 DetectAllChildrenLoad( null , rootChildList[ k ] );
         }
 
+        //TODO 测试场景中原有Camera_Light删除
+        var go = GameObject.Find( "Camera_Light" ).gameObject;
+        if( targetLevel == 0 && go != null )
+        {
+            DestroyImmediate( go );
+        }
+        //..
+
         DataModel.Instance.CurLevel = targetLevel;
 
         yield return _waitTime;
 
-        fadeBG.raycastTarget = false;
         fadeBG.CrossFadeAlpha( 0 , 0.5f , true );
 
-        ////查找目标点
-        //var player = GameObject.Find( "Roles/Player/Man" );
-        //if( player != null )
-        //    PlayerController.Instance.CurPlayer = player.transform;
+        yield return _waitTime;
 
-        //TODO LoadingScene
-        if( targetLevel == 0 )
-        {
-            Destroy( GameObject.Find( "Managers" ) );
-        }
+        fadeBG.raycastTarget = false;
+
+        if( callBack!=null )
+            callBack.Invoke();
     }
 
 
@@ -102,14 +110,6 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
             iden.propType = levelCell.propType;
             iden.pointsType = levelCell.pointType;
             iden.obstacleType = levelCell.obstacleType;
-            //TODO  取而代之的是Identity的逻辑处理
-            //..
-
-            ////编辑器下
-            //if( iden.type == ObjectType.Obstacles && iden.obstacleType == ObstaclesType.AirObstacle )
-            //{
-            //    go.GetComponent<MeshRenderer>().enabled = false;
-            //}
         }
         else
             go = new GameObject();

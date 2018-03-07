@@ -6,6 +6,8 @@ using System.Collections.Generic;
 public class DataModel : Singleton<DataModel>
 {
     public int CurLevel { get; set; }
+
+
 }
 
 
@@ -219,5 +221,17 @@ public enum RolesType
     /// 怪物
     /// </summary>
     Monster,
+}
+
+
+/// <summary>
+/// 层列表
+/// </summary>
+public enum Layers
+{
+    //怪物目标
+    Target,
+    //周边墙体
+    Wall,
 }
 

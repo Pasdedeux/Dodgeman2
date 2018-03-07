@@ -63,7 +63,9 @@ public class Identity : MonoBehaviour
             case ObjectType.Obstacles:
                 if( obstacleType == ObstaclesType.AirObstacle )
                 {
+                    GetComponent<BoxCollider>().isTrigger = true;
                     GetComponent<MeshRenderer>().enabled = false;
+                    gameObject.layer = LayerMask.NameToLayer( Layers.Wall.ToString() );
                 }
                 break;
             case ObjectType.Points:

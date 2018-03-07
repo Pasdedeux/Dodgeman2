@@ -6,6 +6,6 @@ public class TestStartButton : MonoBehaviour {
 
     public void StartGame()
     {
-        SceneLoadManager.Instance.StartFade( 1 );
+        Assets.Scripts.GameController.Instance.EnterLevel( 1 );
     }
 }

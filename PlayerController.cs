@@ -4,6 +4,7 @@ using UnityEngine;
 using LTool;
 using DG.Tweening;
 using System;
+using Assets.Scripts;
 
 /// <summary>
 /// 临时用类，主要实现玩家控制
@@ -17,10 +18,6 @@ public class PlayerController : SingletonMono<PlayerController>
     private const float SPEED_CHANGE_TIME = 0.2f;
     //加减速所用距离
     private const float SPEED_CHANGE_LENGTH = 0.5f;
-    //怪物检测层
-    private const string LAYERNAME_MONSTER = "Target";
-    //墙体检测层
-    private const string LAYERNAME_WALL = "Wall";
     //下坠路线的默认移动速度
     private const float PLAYER_MOVE_SPEED_FALL = 5F;
     //下坠路线的默认旋转速度
@@ -139,11 +136,11 @@ public class PlayerController : SingletonMono<PlayerController>
 
             if( !_isMoving && _curCmdDirection != Vector3.zero )
             {
-                if ( CanPassDetection( _curPlayer.position , _curCmdDirection , LAYERNAME_MONSTER) )
+                if( CanPassDetection( _curPlayer.position , _curCmdDirection , Layers.Target.ToString() ) ) 
                 {
                     StartControlParam();
                 }
-                else if( CanPassDetection( _curPlayer.position , _curCmdDirection , LAYERNAME_WALL ) )
+                else if( CanPassDetection( _curPlayer.position , _curCmdDirection , Layers.Wall.ToString() ) )
                 {
                     //_curCmdDirection = Vector3.zero;
                     StartControlParam( true );
@@ -159,92 +156,82 @@ public class PlayerController : SingletonMono<PlayerController>
         if ( _curCmdDirection != Vector3.zero )
         {
             //=========================正常路线
-            //if( !_isSelfKill )
-            { 
-                PLAYE_POS.x = _curPlayer.position.x;
-                PLAYE_POS.y = _curPlayer.position.z;
+            PLAYE_POS.x = _curPlayer.position.x;
+            PLAYE_POS.y = _curPlayer.position.z;
 
-                DEST_POS.x = _targetPosistion.x;
-                DEST_POS.y = _targetPosistion.z;
+            DEST_POS.x = _targetPosistion.x;
+            DEST_POS.y = _targetPosistion.z;
 
-                //--移动
-                if( Vector2.Distance( PLAYE_POS , DEST_POS ) < SPEED_CHANGE_LENGTH )
+            //--移动
+            if( Vector2.Distance( PLAYE_POS , DEST_POS ) < SPEED_CHANGE_LENGTH )
+            {
+                _curSpeedUpTime -= _fixedTimeDelta;
+                _playerMoveSpeed -= _speedUpRatio * _fixedTimeDelta;
+
+                ////TODO
+                //___speedDownTime += _fixedTimeDelta;
+
+                //计算float精度有问题，判断并不准确，用这种方式处理
+                if( _curSpeedUpTime < _fixedTimeDelta )
                 {
-                    _curSpeedUpTime -= _fixedTimeDelta;
-                    _playerMoveSpeed -= _speedUpRatio * _fixedTimeDelta;
+                    //TODO
+                    //Debug.Log( "减速耗时 " + ___speedDownTime );
+                    Debug.Log( "到达指定位置 " );
+                    //___speedDownTime = 0f;
 
-                    ////TODO
-                    //___speedDownTime += _fixedTimeDelta;
+                    _curSpeedUpTime = 0;
+                    _playerMoveSpeed = 0;
 
-                    //计算float精度有问题，判断并不准确，用这种方式处理
-                    if( _curSpeedUpTime < _fixedTimeDelta )
+                    DEST_POINT.x = _targetPosistion.x;
+                    DEST_POINT.z = _targetPosistion.z;
+                    DEST_POINT.y = _curPlayer.position.y;
+
+                    _curPlayer.position = DEST_POINT;
+
+                    var ident = _targetObject.GetComponent<Identity>();
+                    if( ident != null )
                     {
-                        //TODO
-                        //Debug.Log( "减速耗时 " + ___speedDownTime );
-                        Debug.Log( "到达指定位置 " );
-                        //___speedDownTime = 0f;
-
-                        _curSpeedUpTime = 0;
-                        _playerMoveSpeed = 0;
-
-                        DEST_POINT.x = _targetPosistion.x;
-                        DEST_POINT.z = _targetPosistion.z;
-                        DEST_POINT.y = _curPlayer.position.y;
-
-                        _curPlayer.position = DEST_POINT;
-
-                        var id = _targetObject.GetComponent<Identity>();
-                        if( id != null )
+                        if( ident.type == ObjectType.Points )
                         {
-                            if( id.type == ObjectType.Points )
-                            {
-                                SceneLoadManager.Instance.StartFade( id.id );
-                            }
-                        }
-                        StopControlParam();
-
-                        if( _isSelfKill )
-                        {
-                            Debug.Log( "播放坠落动画" );
-                            _playerColliderBox.enabled = true;
-                            _playerRigidBody.useGravity = true;
+                            GameController.Instance.EnterLevel( ident.id );
                         }
                     }
-                }
-                else
-                {
-                    //计算float精度有问题，判断并不准确，用这种方式处理
-                    if( _curSpeedUpTime < SPEED_CHANGE_TIME )
-                    {
-                        _curSpeedUpTime += _fixedTimeDelta;
-                        _playerMoveSpeed += _speedUpRatio * _fixedTimeDelta;
+                    StopControlParam();
 
-                        if( _curSpeedUpTime > SPEED_CHANGE_TIME - _fixedTimeDelta )
-                        {
-                            Debug.Log( "加速耗时: " + _curSpeedUpTime );
-                            _curSpeedUpTime = SPEED_CHANGE_TIME;
-                            //_playerMoveSpeedFall = _playerMoveSpeed;
-                        }
+                    if( _isSelfKill )
+                    {
+                        Debug.Log( "播放坠落动画" );
+                        _playerColliderBox.enabled = true;
+                        _playerRigidBody.useGravity = true;
                     }
                 }
-
-                DEST_POINT = _targetPosistion;
-                _curPlayer.position = Vector3.MoveTowards( _curPlayer.position , DEST_POINT , _playerMoveSpeed * _fixedTimeDelta );
-
-                //--滚动
-                if( _curRollTime < _playerRollTime )
+            }
+            else
+            {
+                //计算float精度有问题，判断并不准确，用这种方式处理
+                if( _curSpeedUpTime < SPEED_CHANGE_TIME )
                 {
-                    _curRollTime += _fixedTimeDelta;
-                    _curPlayer.Rotate( _rotateAxis , _playerRollSpeed * _fixedTimeDelta , Space.World );
+                    _curSpeedUpTime += _fixedTimeDelta;
+                    _playerMoveSpeed += _speedUpRatio * _fixedTimeDelta;
+
+                    if( _curSpeedUpTime > SPEED_CHANGE_TIME - _fixedTimeDelta )
+                    {
+                        Debug.Log( "加速耗时: " + _curSpeedUpTime );
+                        _curSpeedUpTime = SPEED_CHANGE_TIME;
+                        //_playerMoveSpeedFall = _playerMoveSpeed;
+                    }
                 }
             }
 
-            ////=========================坠落路线
-            //else
-            //{
-            //    _curPlayer.Translate( -1 * _curCmdDirection * _playerMoveSpeedFall * _fixedTimeDelta , Space.World );
-            //    _curPlayer.Rotate( _rotateAxis , _playerRollSpeedFall * _fixedTimeDelta , Space.World );
-            //}
+            DEST_POINT = _targetPosistion;
+            _curPlayer.position = Vector3.MoveTowards( _curPlayer.position , DEST_POINT , _playerMoveSpeed * _fixedTimeDelta );
+
+            //--滚动
+            if( _curRollTime < _playerRollTime )
+            {
+                _curRollTime += _fixedTimeDelta;
+                _curPlayer.Rotate( _rotateAxis , _playerRollSpeed * _fixedTimeDelta , Space.World );
+            }
         }
     }
 
