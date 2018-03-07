@@ -22,11 +22,10 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
 
     private void Awake()
     {
-        fadeBG.CrossFadeAlpha( 0 , 0.01f , true );
-        fadeBG.raycastTarget = false;
-
         DontDestroyOnLoad( this );
     }
+
+    
 
     public void StartFade( int targetLevel, Action callBack = null )
     {
@@ -45,7 +44,11 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
         AsyncOperation sceneprocess;
         //场景内容加载
         if( targetLevel == 0 )
+        {
             yield return sceneprocess = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync( 0 );
+            var canvas = GameObject.Find( "Canvas" ).GetComponent<Canvas>();
+            canvas.worldCamera = this.uiCam;
+        }
         else
         {
             LevelClass levelClass;
@@ -73,14 +76,6 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
                 DetectAllChildrenLoad( null , rootChildList[ k ] );
         }
 
-        //TODO 测试场景中原有Camera_Light删除
-        var go = GameObject.Find( "Camera_Light" ).gameObject;
-        if( targetLevel == 0 && go != null )
-        {
-            DestroyImmediate( go );
-        }
-        //..
-
         DataModel.Instance.CurLevel = targetLevel;
 
         yield return _waitTime;
@@ -103,7 +98,7 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
 
         if( !levelCell.noIdentity )
         {
-            go = GameObject.Instantiate( PrefabLoader.Instance.GetPrefab( levelCell.prefabName ) );
+            go = PrefabLoader.Instance.GetPrefab( levelCell.prefabName );
             Identity iden = go.GetComponent<Identity>() == null ? go.AddComponent<Identity>() : go.GetComponent<Identity>();
             iden.type = levelCell.type;
             iden.rolesType = levelCell.roleType;

@@ -10,7 +10,9 @@ public class PrefabLoader : Singleton<PrefabLoader>
     public void Init()
     {
         _prefabList = new Dictionary<string , GameObject>();
+        //TODO 临时
         //加载预制件列表
+        _prefabList.Add( "Camera_Light" , Resources.Load<GameObject>( "Camera_Light" ) );
         _prefabList.Add( "Terminus" , Resources.Load<GameObject>( "Terminus" ) );
         _prefabList.Add( "Enemy" , Resources.Load<GameObject>( "Enemy" ) );
         _prefabList.Add( "Tower" , Resources.Load<GameObject>( "Tower" ) );
@@ -28,6 +30,6 @@ public class PrefabLoader : Singleton<PrefabLoader>
             //TODO 先尝试寻找加载，否则为null
             return null;
 
-        return _prefabList[ prefabName ];
+        return GameObject.Instantiate( _prefabList[ prefabName ] );
     }
 }
