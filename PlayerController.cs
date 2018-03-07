@@ -198,7 +198,7 @@ public class PlayerController : SingletonMono<PlayerController>
                         {
                             if( id.type == ObjectType.Points )
                             {
-                                SceneManager.Instance.StartFade( id.id );
+                                SceneLoadManager.Instance.StartFade( id.id );
                             }
                         }
                         StopControlParam();

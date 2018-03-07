@@ -52,6 +52,7 @@ public class Identity : MonoBehaviour
         TypeFilter();
     }
 
+
     private void TypeFilter( )
     {
         switch ( type )
@@ -60,12 +61,20 @@ public class Identity : MonoBehaviour
 
                 break;
             case ObjectType.Obstacles:
-                
+                if( obstacleType == ObstaclesType.AirObstacle )
+                {
+                    GetComponent<MeshRenderer>().enabled = false;
+                }
+
                 break;
             case ObjectType.Points:
 
                 break;
             case ObjectType.Roles:
+                if( rolesType == RolesType.Player )
+                {
+                    PlayerController.Instance.CurPlayer = this.transform;
+                }
 
                 break;
             case ObjectType.Prop:
