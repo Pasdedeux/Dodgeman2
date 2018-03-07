@@ -65,7 +65,6 @@ public class Identity : MonoBehaviour
                 {
                     GetComponent<MeshRenderer>().enabled = false;
                 }
-
                 break;
             case ObjectType.Points:
 
