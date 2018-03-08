@@ -15,7 +15,7 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
     private Dictionary<int , LevelClass> _levelInfoDict = new Dictionary<int , LevelClass>();
     //转场背景时间
     public Image fadeBG;
-    public Camera uiCam;
+    //public Camera uiCam;
     public Camera mainCam;
     //转场时间
     private WaitForSeconds _waitTime = new WaitForSeconds( 0.5f );
@@ -46,8 +46,6 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
         if( targetLevel == 0 )
         {
             yield return sceneprocess = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync( 0 );
-            var canvas = GameObject.Find( "Canvas" ).GetComponent<Canvas>();
-            canvas.worldCamera = this.uiCam;
         }
         else
         {
