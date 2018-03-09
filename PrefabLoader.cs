@@ -12,6 +12,7 @@ public class PrefabLoader : Singleton<PrefabLoader>
         _prefabList = new Dictionary<string , GameObject>();
         //TODO 临时
         //加载预制件列表
+        _prefabList.Add( GlobalDefine.UINames.MainMenu , Resources.Load<GameObject>( "UI/Panel_MainMenu" ) );
         _prefabList.Add( "Camera_Light" , Resources.Load<GameObject>( "Camera_Light" ) );
         _prefabList.Add( "Terminus" , Resources.Load<GameObject>( "Terminus" ) );
         _prefabList.Add( "Enemy" , Resources.Load<GameObject>( "Enemy" ) );

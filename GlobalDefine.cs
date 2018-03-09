@@ -1,7 +1,7 @@
 ﻿/****************************************************************
  * 作    者：Derek Liu
  * CLR 版本：4.0.30319.42000
- * 创建时间：2018/3/7 23:03:09
+ * 创建时间：2018/3/9 13:25:42
  * 当前版本：1.0.0.1
  * 
  * 描述说明：
@@ -16,20 +16,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using UnityEngine;
+using LTool;
 
-namespace Assets.Scripts
+class GlobalDefine
 {
-    class AppStart:MonoBehaviour
+    public static class UINames
     {
-        private void Awake()
-        {
-            DontDestroyOnLoad( this );
-        }
-
-        private void Start()
-        {
-            SceneLoadManager.Instance.StartFade( 0 );
-        }
+        public const string MainMenu = "StartMenu";
     }
 }
