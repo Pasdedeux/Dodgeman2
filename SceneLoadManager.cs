@@ -7,6 +7,7 @@ using System;
 using System.IO;
 using LitJson;
 using Assets.Scripts;
+using Assets.Scripts.Managers;
 
 /// <summary>
 /// 2、加入滚动形象
@@ -18,11 +19,18 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
     public Image fadeBG;
     public Camera mainCam;
     //转场时间
-    private WaitForSeconds _waitTime = new WaitForSeconds( 0.5f );
     private Coroutine _changeCoroutine;
+    //Loading界面中央停留对象队列
+    private List<GameObject> _showingList;
+
+    private WaitForSeconds _waitTime;
+    private WaitForEndOfFrame _waitFrame;
 
     private void Awake()
     {
+        _showingList = new List<GameObject>();
+        _waitTime = new WaitForSeconds( 0.5f );
+        _waitFrame = new WaitForEndOfFrame();
         DontDestroyOnLoad( this );
     }
 
@@ -46,28 +54,30 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
         {
             yield return sceneprocess = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync( 0 );
 
-            //TODO  跳到Loading+主菜单
-            //。。
-            //TODO 临时，这一段应该放在Loading部分
-            UIManager.Instance.GetUIResource = PrefabLoader.Instance.GetPrefab;
-            UIManager.Instance.Show( GlobalDefine.UINames.MainMenu );
+            //主菜单
+            if( GameController.Instance.GameIsInit )
+            {
+                Debug.LogError( "直接进入主界面" );
+                UIManager.Instance.Show( GlobalDefine.UINames.MainMenu );
+            }
+            //Loading
+            else
+            {
+                Debug.LogError( "进入Loading" );
+                //加载配置文件和数据初始化
+                DataModel.Instance.InitData();
+                SpawnManager.Instance.Install();
+                PrefabLoader.Instance.InitUIPrefabs();
 
-            ////主菜单
-            //if( GameController.Instance.GameIsInit )
-            //{
-                
-            //}
-            ////Loading
-            //else
-            //{
-            //    //TODO 加载配置文件
-            //    //..
+                //加载必要预制件
+                //..
 
-            //    //加载必要预制件
-            //    //..
 
-            //    GameController.Instance.GameIsInit = true;
-            //}
+                //组建初始化
+                UIManager.Instance.GetUIResource = PrefabLoader.Instance.GetPrefab;
+
+                GameController.Instance.GameIsInit = true;
+            }
         }
         else
         {
@@ -98,8 +108,6 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
             for( int k = 0; k < rootChildList.Count; k++ )
                 DetectAllChildrenLoad( null , rootChildList[ k ] );
         }
-
-        DataModel.Instance.CurLevel = targetLevel;
 
         yield return _waitTime;
 

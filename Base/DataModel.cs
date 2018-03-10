@@ -6,7 +6,21 @@ using System.Collections.Generic;
 public class DataModel : Singleton<DataModel>
 {
     public int CurLevel { get; set; }
+    public int UnLockedMaxLevel { get; set; }
 
+    /// <summary>
+    /// 数据模型初始
+    /// </summary>
+    public void InitData()
+    {
+        CurLevel = DataBase.CurLevel;
+        UnLockedMaxLevel = DataBase.UnLockedMaxLevel;
+    }
+
+    public void ResetData()
+    {
+
+    }
 
 }
 

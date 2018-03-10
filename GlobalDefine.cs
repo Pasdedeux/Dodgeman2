@@ -22,6 +22,6 @@ class GlobalDefine
 {
     public static class UINames
     {
-        public const string MainMenu = "StartMenu";
+        public const string MainMenu = "UI_StartMenu";
     }
 }
