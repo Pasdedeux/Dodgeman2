@@ -261,7 +261,6 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
         }
     }
 
-    private float _nextMaxRotationByAngle;
     private void ShowLoadingProgress( float ratio )
     {
         if( ratio == 1 )
@@ -271,12 +270,9 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
             Debug.Log( ">>>>>>>>>>>>>>>>加载完成" );
         }
 
-        //Debug.Log( "===>" + ratio );
-        _mainPlayer.transform.position = Vector3.Lerp( _loadingStartPos , _loadingEndPos , ratio );
-
         _trueRotationByAngle = ( _totalRotationByAngle * ratio ) % 180;
-        _mainPlayer.transform.rotation = Quaternion.Euler( 0 , 0 , -_trueRotationByAngle );
-        Debug.Log( "==>" + _trueRotationByAngle );
+        _mainPlayer.transform.position = Vector3.Lerp( _loadingStartPos , _loadingEndPos , ratio );
+        _mainPlayer.transform.rotation = Quaternion.Euler( 0 , 0 , -_trueRotationByAngle + Mathf.Floor( _totalRotationByAngle * ratio / 180 ) * 180 );
     }
 
 
