@@ -13,14 +13,4 @@ public class UIMainMenu : BaseUI
         CurrentUIType.uiTransparent = UITransparentEnum.Penetrating;
         CurrentUIType.uiType = UITypeEnum.Normal;
     }
-
-    // Use this for initialization
-    void Start () {
-		
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
 }

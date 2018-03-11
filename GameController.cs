@@ -23,7 +23,7 @@ namespace Assets.Scripts
     class GameController:Singleton<GameController>
     {
         //游戏初始化
-        public bool GameIsInit { get; set; }
+        public static bool GameIsInit { get; set; }
 
         public void EnterMainMenu()
         {
