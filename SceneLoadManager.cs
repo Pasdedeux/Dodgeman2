@@ -274,14 +274,9 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
         //Debug.Log( "===>" + ratio );
         _mainPlayer.transform.position = Vector3.Lerp( _loadingStartPos , _loadingEndPos , ratio );
 
-        //_nextMaxRotationByAngle = -1 * Mathf.Max( 90 , Mathf.Min( 180f , _totalRotationByAngle * ( 1 - ratio ) ) );
-        //Debug.Log( "<color=yellow>===>" + _nextMaxRotationByAngle + "</color>");
-
-        //_trueRotationByAngle = ( _totalRotationByAngle * ratio ) % 180;
-        //_mainPlayer.transform.rotation = Quaternion.Lerp( _mainPlayer.transform.rotation , Quaternion.Euler( 0 , 0 , -_trueRotationByAngle ) , _trueRotationByAngle/180 );
-        //Debug.Log( "===>" + _trueRotationByAngle / 180 );
-
-        
+        _trueRotationByAngle = ( _totalRotationByAngle * ratio ) % 180;
+        _mainPlayer.transform.rotation = Quaternion.Euler( 0 , 0 , -_trueRotationByAngle );
+        Debug.Log( "==>" + _trueRotationByAngle );
     }
 
 
