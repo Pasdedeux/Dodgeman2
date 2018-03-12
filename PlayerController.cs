@@ -98,6 +98,9 @@ public class PlayerController : SingletonMono<PlayerController>
     {
         if ( !_isMoving )
         {
+            if( !GameController.GameIsInit )
+                return;
+
 #if ( UNITY_EDITOR || UNITY_STANDALONE_WIN )
             if ( Input.GetKeyUp( KeyCode.LeftArrow ) )
             {

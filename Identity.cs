@@ -53,7 +53,7 @@ public class Identity : MonoBehaviour
     }
 
 
-    private void TypeFilter( )
+    public void TypeFilter( )
     {
         switch ( type )
         {
