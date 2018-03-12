@@ -82,10 +82,9 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
             if( GameController.GameIsInit )
             {
                 Debug.LogError( "直接进入主界面" );
-                UIManager.Instance.Show( GlobalDefine.UINames.MainMenu );
 
-                InitMain3DBar();
-                _needCameraFollow = true;
+                EnterMainMenu();
+                _needCameraFollow = false;
             }
             //Loading
             else
@@ -284,8 +283,7 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
             GameController.GameIsInit = true;
             Debug.Log( ">>>>>>>>>>>>>>>>加载完成" );
 
-            //InitMain3DBar();
-            GameController.Instance.EnterMainMenu();
+            EnterMainMenu();
         }
 
         _trueRotationByAngle = ( _totalRotationByAngle * ratio ) % 180;
@@ -323,6 +321,13 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
     }
 
 
+
+    private void EnterMainMenu()
+    {
+        UIManager.Instance.Close( GlobalDefine.UINames.Loading );
+        UIManager.Instance.Show( GlobalDefine.UINames.MainMenu );
+        InitMain3DBar();
+    }
 }
 
 
