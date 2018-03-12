@@ -25,7 +25,7 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
     //转场时间
     private Coroutine _changeCoroutine;
     //Loading界面中央停留对象队列
-    private List<string> _showingList;
+    private List<LoadingObject> _showingList;
     private List<GameObject> _loadingList;
 
     private Vector3 _loadingStartPos, _loadingEndPos;
@@ -39,8 +39,8 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
 
     private void Awake()
     {
-        _showingList = new List<string>();
         _loadingList = new List<GameObject>();
+        _showingList = new List<LoadingObject>();
 
         _waitTime = new WaitForSeconds( 0.5f );
         _waitFrame = new WaitForEndOfFrame();
@@ -148,24 +148,27 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
 
     private void InitMain3DBar()
     {
+        if( _showingList.Count == 0 )
+            throw new Exception( "主场景展示物未登记展示物" );
+
         for( int i = 0; i < _showingList.Count; i++ )
         {
-            if( _showingList[ i ] == "Floor" )
+            if( _showingList[ i ].prefabName == GlobalDefine.PrefabNames.Floor )
             {
-                var floor = PrefabLoader.Instance.GetPrefab( _showingList[ i ] );
-                floor.transform.position = i * Vector3.right;
+                var floor = PrefabLoader.Instance.GetPrefab( _showingList[ i ].prefabName );
+                floor.transform.position = _showingList[i].position;
                 floor.transform.SetParent( _mainLoadingContainer.transform );
             }
-            else if( _showingList[ i ] == "Man" )
+            else if( _showingList[ i ].prefabName == GlobalDefine.PrefabNames.Man )
             {
-                var man = PrefabLoader.Instance.GetPrefab( _showingList[ i ] );
-                man.transform.position = Vector3.up;
+                var man = PrefabLoader.Instance.GetPrefab( _showingList[ i ].prefabName );
+                man.transform.position = _showingList[ i ].position;
                 man.transform.SetParent( _mainLoadingContainer.transform );
             }
-            else if( _showingList[ i ] == "Terminus" )
+            else if( _showingList[ i ].prefabName == GlobalDefine.PrefabNames.Terminal )
             {
-                var term = PrefabLoader.Instance.GetPrefab( _showingList[ i ] );
-                term.transform.position = ( _showingList.Count - 2 ) * Vector3.up;
+                var term = PrefabLoader.Instance.GetPrefab( _showingList[ i ].prefabName );
+                term.transform.position = _showingList[ i ].position;
                 term.transform.SetParent( _mainLoadingContainer.transform );
             }
         }
@@ -179,7 +182,7 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
         while( m <= n )
         {
             //加载必要预制件
-            var floor = PrefabLoader.Instance.GetPrefab( "Floor" );
+            var floor = PrefabLoader.Instance.GetPrefab( GlobalDefine.PrefabNames.Floor );
             floor.transform.position = m * Vector3.right;
             floor.transform.SetParent( _mainLoadingContainer.transform );
 
@@ -187,7 +190,7 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
             m++;
         }
         //中继点
-        var enemy = PrefabLoader.Instance.GetPrefab( "Enemy" );
+        var enemy = PrefabLoader.Instance.GetPrefab( GlobalDefine.PrefabNames.Enemy );
         enemy.transform.position = n * Vector3.right + Vector3.up;
 
         _loadingList.Add( enemy );
@@ -195,27 +198,27 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
         n += 5;
         while( m <= n )
         {
-            //加载必要预制件
-            var floor = PrefabLoader.Instance.GetPrefab( "Floor" );
-            floor.transform.position = m * Vector3.right;
-            floor.transform.SetParent( _mainLoadingContainer.transform );
+            ////加载必要预制件
+            //var floor = PrefabLoader.Instance.GetPrefab( GlobalDefine.PrefabNames.Floor );
+            //floor.transform.position = m * Vector3.right;
+            //floor.transform.SetParent( _mainLoadingContainer.transform );
 
-            _showingList.Add( "Floor" );
+            _showingList.Add( new LoadingObject() { prefabName = GlobalDefine.PrefabNames.Floor , position = m * Vector3.right } );
             m++;
         }
         //终点
-        var terminal = PrefabLoader.Instance.GetPrefab( "Terminus" );
-        terminal.transform.position = n * Vector3.right + Vector3.up;
+        //var terminal = PrefabLoader.Instance.GetPrefab( GlobalDefine.PrefabNames.Terminal );
+        //terminal.transform.position = n * Vector3.right + Vector3.up;
 
-        _showingList.Add( "Terminus" );
+        _showingList.Add( new LoadingObject() { prefabName = GlobalDefine.PrefabNames.Terminal , position = n * Vector3.right + Vector3.up } );
 
-        //玩家
+        //Loading玩家
         if( _mainPlayer != null )
         {
             SpawnManager.Instance.DespawnObject( _mainPlayer.transform );
             _mainPlayer = null;
         }
-        _mainPlayer = PrefabLoader.Instance.GetPrefab( "Man" );
+        _mainPlayer = PrefabLoader.Instance.GetPrefab( GlobalDefine.PrefabNames.Man );
         _mainPlayer.transform.position = Vector3.up;
         _mainPlayer.transform.SetParent( _mainLoadingContainer.transform );
 
@@ -224,7 +227,7 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
         _loadingEndPos = _loadingList[ _loadingList.Count - 2 ].transform.position + Vector3.up;
         _totalRotationByAngle = Vector3.Distance( _loadingStartPos , _loadingEndPos ) * 90;
 
-        _showingList.Add( "Man" );
+        _showingList.Add( new LoadingObject() { prefabName = GlobalDefine.PrefabNames.Man , position = ( n - 5 ) * Vector3.right + Vector3.up } );
     }
 
     void DetectAllChildrenLoad( Transform parent , LevelCell leveCell )
@@ -268,6 +271,8 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
             _needCameraFollow = false;
             GameController.GameIsInit = true;
             Debug.Log( ">>>>>>>>>>>>>>>>加载完成" );
+
+            InitMain3DBar();
         }
 
         _trueRotationByAngle = ( _totalRotationByAngle * ratio ) % 180;
@@ -287,4 +292,14 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
             mainCam.transform.position = _camOffset + new Vector3( _mainPlayer.transform.position.x , 0 , 0 );
         }
     }
+
+
+
+}
+
+
+class LoadingObject
+{
+    public string prefabName;
+    public Vector3 position; 
 }
