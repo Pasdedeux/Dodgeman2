@@ -105,6 +105,10 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
             //跳到关卡
             LevelClass levelClass;
             yield return sceneprocess = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync( 1 );
+            
+            //为关卡重置摄像机位置
+            ResetCameraLevelPos();
+
             if( _levelInfoDict.ContainsKey( targetLevel ) )
                 levelClass = _levelInfoDict[ targetLevel ];
             else
@@ -305,6 +309,11 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
     }
 
 
+    private void ResetCameraLevelPos()
+    {
+        mainCam.transform.position = _camOffset;
+    }
+
 
     public void ClearAll()
     {
@@ -327,6 +336,8 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
         UIManager.Instance.Close( GlobalDefine.UINames.Loading );
         UIManager.Instance.Show( GlobalDefine.UINames.MainMenu );
         InitMain3DBar();
+
+        mainCam.transform.DOLocalMoveX( _mainPlayer.transform.position.x + 5 , 0.5f ).SetAutoKill( true );
     }
 }
 
