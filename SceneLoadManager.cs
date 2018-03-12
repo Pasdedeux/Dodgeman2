@@ -8,6 +8,7 @@ using System.IO;
 using LitJson;
 using Assets.Scripts;
 using Assets.Scripts.Managers;
+using DG.Tweening;
 
 /// <summary>
 /// 2、加入滚动形象
@@ -33,9 +34,14 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
 
     private GameObject _mainLoadingContainer;
     private GameObject _mainPlayer;
+    private GameObject _loadingEnemy;
 
     private WaitForSeconds _waitTime;
     private WaitForEndOfFrame _waitFrame;
+
+    private const float RAISE_SPEED = 0.2f;
+    private const float DELAY_SPEED = 0.3f;
+    private const float DOWN_DISTANCE = 5f;
 
     private void Awake()
     {
@@ -63,6 +69,7 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
         fadeBG.CrossFadeAlpha( 1 , 0.5f , true );
         yield return _waitTime;
 
+        ClearAll();
 
         AsyncOperation sceneprocess;
         //场景内容加载
@@ -153,64 +160,70 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
 
         for( int i = 0; i < _showingList.Count; i++ )
         {
-            if( _showingList[ i ].prefabName == GlobalDefine.PrefabNames.Floor )
+            if( _showingList[ i ].prefabName == GlobalDefine.PrefabNames.Man )
             {
-                var floor = PrefabLoader.Instance.GetPrefab( _showingList[ i ].prefabName );
-                floor.transform.position = _showingList[i].position;
-                floor.transform.SetParent( _mainLoadingContainer.transform );
+                if( _mainPlayer == null )
+                {
+                    var item = PrefabLoader.Instance.GetPrefab( _showingList[ i ].prefabName );
+                    item.transform.position = _showingList[ i ].position;
+                    item.transform.SetParent( _mainLoadingContainer.transform );
+                    item.transform.DOLocalMove( _showingList[ i ].position , RAISE_SPEED ).SetDelay( DELAY_SPEED * i * 0.5f ).SetAutoKill( true );
+                    _mainPlayer = item;
+                    _showingList[ i ].transform = item.transform;
+                }
             }
-            else if( _showingList[ i ].prefabName == GlobalDefine.PrefabNames.Man )
+            else
             {
-                var man = PrefabLoader.Instance.GetPrefab( _showingList[ i ].prefabName );
-                man.transform.position = _showingList[ i ].position;
-                man.transform.SetParent( _mainLoadingContainer.transform );
-            }
-            else if( _showingList[ i ].prefabName == GlobalDefine.PrefabNames.Terminal )
-            {
-                var term = PrefabLoader.Instance.GetPrefab( _showingList[ i ].prefabName );
-                term.transform.position = _showingList[ i ].position;
-                term.transform.SetParent( _mainLoadingContainer.transform );
+                var item = PrefabLoader.Instance.GetPrefab( _showingList[ i ].prefabName );
+                item.transform.position = _showingList[ i ].position - DOWN_DISTANCE * Vector3.up;
+                item.transform.SetParent( _mainLoadingContainer.transform );
+                item.transform.DOLocalMove( _showingList[ i ].position , RAISE_SPEED ).SetDelay( DELAY_SPEED * i * 0.5f ).SetAutoKill( true );
+                _showingList[ i ].transform = item.transform;
             }
         }
     }
 
     private void InitLoading3DBar()
     {
-        //Loading条地板
-        int n = UnityEngine.Random.Range( 5 , 8 ), m = 0;
-        n = 6;
+        //Loading======================================
+        int n = 7, m = 0;
         while( m <= n )
         {
-            //加载必要预制件
             var floor = PrefabLoader.Instance.GetPrefab( GlobalDefine.PrefabNames.Floor );
             floor.transform.position = m * Vector3.right;
             floor.transform.SetParent( _mainLoadingContainer.transform );
 
+            //先前降落，只保留一个
+            if( m < n )
+                floor.transform.DOLocalMove( floor.transform.position - DOWN_DISTANCE * Vector3.up , RAISE_SPEED ).SetDelay( 1.2f + DELAY_SPEED * m ).SetAutoKill( true );
+
+            //后续升起
+            if( m > 1 )
+            {
+                floor.transform.position -= DOWN_DISTANCE * Vector3.up;
+                floor.transform.DOLocalMove( m * Vector3.right , RAISE_SPEED ).SetDelay( 0.3f + DELAY_SPEED * m ).SetAutoKill( true );
+            }
             _loadingList.Add( floor );
             m++;
         }
         //中继点
-        var enemy = PrefabLoader.Instance.GetPrefab( GlobalDefine.PrefabNames.Enemy );
-        enemy.transform.position = n * Vector3.right + Vector3.up;
+        _loadingEnemy = PrefabLoader.Instance.GetPrefab( GlobalDefine.PrefabNames.Enemy );
+        _loadingEnemy.transform.position = n * Vector3.right + Vector3.up;
+        _loadingEnemy.transform.SetParent( _mainLoadingContainer.transform );
+        _loadingEnemy.transform.GetComponent<MeshRenderer>().enabled = false;
+        _loadingList.Add( _loadingEnemy );
 
-        _loadingList.Add( enemy );
-        //Main主场景地板
+
+        //Main======================================
         n += 5;
         while( m <= n )
         {
-            ////加载必要预制件
-            //var floor = PrefabLoader.Instance.GetPrefab( GlobalDefine.PrefabNames.Floor );
-            //floor.transform.position = m * Vector3.right;
-            //floor.transform.SetParent( _mainLoadingContainer.transform );
-
             _showingList.Add( new LoadingObject() { prefabName = GlobalDefine.PrefabNames.Floor , position = m * Vector3.right } );
             m++;
         }
         //终点
-        //var terminal = PrefabLoader.Instance.GetPrefab( GlobalDefine.PrefabNames.Terminal );
-        //terminal.transform.position = n * Vector3.right + Vector3.up;
-
         _showingList.Add( new LoadingObject() { prefabName = GlobalDefine.PrefabNames.Terminal , position = n * Vector3.right + Vector3.up } );
+
 
         //Loading玩家
         if( _mainPlayer != null )
@@ -222,12 +235,11 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
         _mainPlayer.transform.position = Vector3.up;
         _mainPlayer.transform.SetParent( _mainLoadingContainer.transform );
 
-        //计算得出每帧
         _loadingStartPos = _mainPlayer.transform.position;
-        _loadingEndPos = _loadingList[ _loadingList.Count - 2 ].transform.position + Vector3.up;
-        _totalRotationByAngle = Vector3.Distance( _loadingStartPos , _loadingEndPos ) * 90;
+        _loadingEndPos = _loadingList[ _loadingList.Count - 1 ].transform.position; //终点取loading终点下移一格位置，因最终格子已下沉，无法用于定位
 
-        _showingList.Add( new LoadingObject() { prefabName = GlobalDefine.PrefabNames.Man , position = ( n - 5 ) * Vector3.right + Vector3.up } );
+        _totalRotationByAngle = Vector3.Distance( _loadingStartPos , _loadingEndPos ) * 90;
+        _showingList.Add( new LoadingObject() { prefabName = GlobalDefine.PrefabNames.Man , position = _showingList[ 0 ].position + Vector3.up } );
     }
 
     void DetectAllChildrenLoad( Transform parent , LevelCell leveCell )
@@ -249,8 +261,8 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
             go = new GameObject();
         go.name = levelCell.name;
         go.transform.position = new Vector3( ( float )levelCell.px , ( float )levelCell.py , ( float )levelCell.pz );
-        go.transform.rotation = Quaternion.Euler( new Vector3( ( float )levelCell.rx , ( float )levelCell.ry , ( float )levelCell.rz ) );
         go.transform.localScale = new Vector3( ( float )levelCell.sx , ( float )levelCell.sy , ( float )levelCell.sz );
+        go.transform.rotation = Quaternion.Euler( new Vector3( ( float )levelCell.rx , ( float )levelCell.ry , ( float )levelCell.rz ) );
 
         if( parent != null )
             go.transform.parent = parent;
@@ -272,7 +284,8 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
             GameController.GameIsInit = true;
             Debug.Log( ">>>>>>>>>>>>>>>>加载完成" );
 
-            InitMain3DBar();
+            //InitMain3DBar();
+            GameController.Instance.EnterMainMenu();
         }
 
         _trueRotationByAngle = ( _totalRotationByAngle * ratio ) % 180;
@@ -295,11 +308,27 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
 
 
 
+    public void ClearAll()
+    {
+        if( _loadingEnemy != null )
+            _loadingEnemy.GetComponent<MeshRenderer>().enabled = true;
+
+        for( int i = _loadingList.Count - 1; i > -1; i-- )
+            SpawnManager.Instance.DespawnObject( _loadingList[ i ].transform );
+        _loadingList.Clear();
+
+        for( int i = 0; i < _showingList.Count; i++ )
+            if( _showingList[ i ].transform != null )
+                SpawnManager.Instance.DespawnObject( _showingList[ i ].transform );
+    }
+
+
 }
 
 
 class LoadingObject
 {
+    public Vector3 position;
     public string prefabName;
-    public Vector3 position; 
+    public Transform transform;
 }
