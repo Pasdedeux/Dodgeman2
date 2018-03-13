@@ -29,7 +29,7 @@ namespace Assets.Scripts
 
         private void Start()
         {
-            SceneLoadManager.Instance.StartFade( 0 );
+            GameController.Instance.EnterMainMenu();
         }
     }
 }
