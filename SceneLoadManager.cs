@@ -91,7 +91,6 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
             {
                 Debug.LogError( "进入Loading" );
                 //必要组件
-                DataModel.Instance.InitData();
                 SpawnManager.Instance.Install();
                 PrefabLoader.Instance.InitUIPrefabs();
                 UIManager.Instance.GetUIResource = PrefabLoader.Instance.GetPrefab;
