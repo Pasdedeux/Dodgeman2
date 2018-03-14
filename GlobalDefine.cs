@@ -22,7 +22,17 @@ class GlobalDefine
 {
     public static class UINames
     {
-        public const string MainMenu = "UI_StartMenu";
+        public const string Level = "UI_Level";
         public const string Loading = "UI_Loading";
+        public const string MainMenu = "UI_StartMenu";
+    }
+
+
+    public static class PrefabNames
+    {
+        public const string Floor = "Floor";
+        public const string Man = "Man";
+        public const string Terminal = "Terminus";
+        public const string Enemy = "Enemy";
     }
 }

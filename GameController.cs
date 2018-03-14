@@ -24,16 +24,18 @@ namespace Assets.Scripts
     {
         //游戏初始化
         public static bool GameIsInit { get; set; }
+        public static bool IsGaming { get; set; }
 
         public void EnterMainMenu()
         {
+            IsGaming = false;
             SceneLoadManager.Instance.StartFade( 0 );
         }
 
 
         public void EnterLevel( int levelID )
         {
-            SceneLoadManager.Instance.StartFade( levelID );
+            SceneLoadManager.Instance.StartFade( levelID , () => { IsGaming = true; } );
         }
 
 
