@@ -22,9 +22,14 @@ class GlobalDefine
 {
     public static class UINames
     {
-        public const string Level = "UI_Level";
         public const string Loading = "UI_Loading";
         public const string MainMenu = "UI_StartMenu";
+        public const string Level = "UI_Level";
+        public const string LevelChoose = "UI_LevelChoose";
+
+        //滚动列表子元素
+        public const string Child_LevelBrick = "Panel_Child_LevelBrick";
+        public const string Child_LevelLine = "Panel_Child_LevelLine";
     }
 
 

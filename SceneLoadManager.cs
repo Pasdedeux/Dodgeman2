@@ -58,9 +58,9 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
 
 
 
-    public void StartFade( int targetLevel , Action callBack = null )
+    public void StartFade( int sceneId , Action callBack = null )
     {
-        _changeCoroutine = StartCoroutine( IEStartFade( targetLevel , callBack ) );
+        _changeCoroutine = StartCoroutine( IEStartFade( sceneId , callBack ) );
     }
 
     IEnumerator IEStartFade( int targetLevel , Action callBack )
@@ -75,13 +75,16 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
         //场景内容加载
         if( targetLevel == 0 )
         {
+            //及时回收原场景中的玩家角色
+            PlayerController.Instance.UnRegister();
+
             yield return sceneprocess = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync( 0 );
 
             _mainLoadingContainer = GameObject.Find( "Loading" );
             //主菜单
             if( GameController.GameIsInit )
             {
-                Debug.LogError( "直接进入主界面" );
+                Debug.Log( "[直接进入主界面]" );
 
                 EnterMainMenu();
                 _needCameraFollow = false;
@@ -89,7 +92,7 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
             //Loading
             else
             {
-                Debug.LogError( "进入Loading" );
+                Debug.Log( "[进入Loading]" );
                 //必要组件
                 SpawnManager.Instance.Install();
                 PrefabLoader.Instance.InitUIPrefabs();
@@ -102,9 +105,9 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
         else
         {
             //跳到关卡
-            LevelClass levelClass;
             yield return sceneprocess = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync( 1 );
-            
+
+            LevelClass levelClass;
             //为关卡重置摄像机位置
             ResetCameraLevelPos();
 
@@ -124,6 +127,7 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
                 using( var fs = fileInfo.OpenText() )
                     levelClass = JsonMapper.ToObject<LevelClass>( fs.ReadToEnd() );
             }
+
             GameObject scene = GameObject.Find( "Scene" );
             if( scene != null )
                 DestroyImmediate( scene );
@@ -148,8 +152,6 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
             uiLoading.ProcessCallFunc = ShowLoadingProgress;
             uiLoading.StartLoading();
         }
-        else
-            UIManager.Instance.Show( GlobalDefine.UINames.MainMenu );
 
         if( callBack != null )
             callBack.Invoke();
@@ -228,11 +230,6 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
 
 
         //Loading玩家
-        if( _mainPlayer != null )
-        {
-            SpawnManager.Instance.DespawnObject( _mainPlayer.transform );
-            _mainPlayer = null;
-        }
         _mainPlayer = PrefabLoader.Instance.GetPrefab( GlobalDefine.PrefabNames.Man );
         _mainPlayer.transform.position = Vector3.up;
         _mainPlayer.transform.SetParent( _mainLoadingContainer.transform );
@@ -261,7 +258,7 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
         }
         else
             go = new GameObject();
-        go.name = levelCell.name;
+        //go.name = levelCell.name;
         go.transform.position = new Vector3( ( float )levelCell.px , ( float )levelCell.py , ( float )levelCell.pz );
         go.transform.localScale = new Vector3( ( float )levelCell.sx , ( float )levelCell.sy , ( float )levelCell.sz );
         go.transform.rotation = Quaternion.Euler( new Vector3( ( float )levelCell.rx , ( float )levelCell.ry , ( float )levelCell.rz ) );
@@ -326,6 +323,15 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
         for( int i = 0; i < _showingList.Count; i++ )
             if( _showingList[ i ].transform != null )
                 SpawnManager.Instance.DespawnObject( _showingList[ i ].transform );
+
+        if( PlayerController.Instance.CurPlayer != null )
+            SpawnManager.Instance.DespawnObject( PlayerController.Instance.CurPlayer.transform );
+
+        if( _mainPlayer != null )
+        {
+            SpawnManager.Instance.DespawnObject( _mainPlayer.transform );
+            _mainPlayer = null;
+        }
     }
 
 
@@ -334,8 +340,8 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
     {
         UIManager.Instance.Close( GlobalDefine.UINames.Loading );
         UIManager.Instance.Show( GlobalDefine.UINames.MainMenu );
-        InitMain3DBar();
 
+        InitMain3DBar();
         mainCam.transform.DOLocalMoveX( _mainPlayer.transform.position.x + 5 , 0.5f ).SetAutoKill( true );
     }
 }

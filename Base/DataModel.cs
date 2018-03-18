@@ -2,19 +2,42 @@
 using System;
 using UnityEngine;
 using System.Collections.Generic;
+using Data;
 
 public class DataModel : Singleton<DataModel>
 {
-    public int CurLevel { get; set; }
-    public int UnLockedMaxLevel { get; set; }
+    public int CurLevel
+    {
+        get { return DataBase.CurLevel; }
+        set { DataBase.CurLevel = value; }
+    }
+
+    public int UnLockedMaxLevel
+    {
+        get { return DataBase.UnLockedMaxLevel; }
+        set { DataBase.UnLockedMaxLevel = value; }
+    }
+
+    public int TipsNum
+    {
+        get { return DataBase.TipsNum; }
+        set { DataBase.TipsNum = value; }
+    }
+
+
+    public bool SoundOpen
+    {
+        get { return DataBase.SoundOpen; }
+        set { DataBase.SoundOpen = value; }
+    }
+
 
     /// <summary>
     /// 数据模型初始
     /// </summary>
     public void InitData()
     {
-        CurLevel = DataBase.CurLevel;
-        UnLockedMaxLevel = DataBase.UnLockedMaxLevel;
+
     }
 
     public void ResetData()

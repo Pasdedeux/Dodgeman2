@@ -29,7 +29,7 @@ namespace Assets.Scripts.Managers
             foreach ( var item in _pool.prefabList )
             {
                 _prefabNameList.Add( item.name );
-                AddPoolManager( _pool , item.transform );
+                AddPoolManager( _pool , item.transform , item .name == GlobalDefine.PrefabNames.Man ? 1 : 5);
             }
         }
 
@@ -42,6 +42,7 @@ namespace Assets.Scripts.Managers
         {
             if ( !_prefabNameList.Contains( name ) )
                 throw new Exception( "不存在预制件 " + name );
+
             return _pool.Spawn( name ).gameObject;
         }
 
@@ -51,7 +52,6 @@ namespace Assets.Scripts.Managers
         /// <param name="item"></param>
         public void DespawnObject( Transform item )
         {
-            item.localScale = Vector3.one;
             _pool.Despawn( item , _pool.transform );
         }
 
@@ -61,14 +61,14 @@ namespace Assets.Scripts.Managers
         /// </summary>
         /// <param name="_spawnPool"></param>
         /// <param name="_transform"></param>
-        public static void AddPoolManager( SpawnPool _spawnPool , Transform _transform )
+        public static void AddPoolManager( SpawnPool _spawnPool , Transform _transform , int num = 5 )
         {
             PrefabPool refabPool = new PrefabPool( _transform );
             if ( !_spawnPool._perPrefabPoolOptions.Contains( refabPool ) )
             {
                 refabPool = new PrefabPool( _transform );
                 //默认初始化两个Prefab
-                refabPool.preloadAmount = 2;
+                refabPool.preloadAmount = num;
                 //开启限制
                 refabPool.limitInstances = true;
                 //关闭无限取Prefab

@@ -11,10 +11,11 @@ public class PrefabLoader : Singleton<PrefabLoader>
     public void InitUIPrefabs()
     {
         _prefabList = new Dictionary<string , GameObject>();
-        //TODO 临时
-        //加载预制件列表
-        _prefabList.Add( GlobalDefine.UINames.MainMenu , Resources.Load<GameObject>( "UI/Panel_MainMenu" ) );
+        //TODO 临时加载预制件列表
         _prefabList.Add( GlobalDefine.UINames.Loading , Resources.Load<GameObject>( "UI/Panel_Loading" ) );
+        _prefabList.Add( GlobalDefine.UINames.MainMenu , Resources.Load<GameObject>( "UI/Panel_MainMenu" ) );
+        _prefabList.Add( GlobalDefine.UINames.Level , Resources.Load<GameObject>( "UI/Panel_Level" ) );
+        _prefabList.Add( GlobalDefine.UINames.LevelChoose , Resources.Load<GameObject>( "UI/Panel_LevelChoose" ) );
     }
 
     public GameObject GetPrefab( string prefabName )

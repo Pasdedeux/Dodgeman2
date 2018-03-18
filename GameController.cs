@@ -29,13 +29,20 @@ namespace Assets.Scripts
         public void EnterMainMenu()
         {
             IsGaming = false;
+            UIManager.Instance.Close( GlobalDefine.UINames.Level );
             SceneLoadManager.Instance.StartFade( 0 );
         }
 
 
         public void EnterLevel( int levelID )
         {
-            SceneLoadManager.Instance.StartFade( levelID , () => { IsGaming = true; } );
+            IsGaming = false;
+            SceneLoadManager.Instance.StartFade( levelID , () => 
+            {
+                PlayerController.Instance.Register();
+                UIManager.Instance.Show( GlobalDefine.UINames.Level );
+                IsGaming = true;
+            } );
         }
 
 

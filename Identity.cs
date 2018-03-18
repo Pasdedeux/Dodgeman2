@@ -74,9 +74,9 @@ public class Identity : MonoBehaviour
             case ObjectType.Roles:
                 if( rolesType == RolesType.Player )
                 {
-                    PlayerController.Instance.CurPlayer = this.transform;
+                    PlayerController.Instance.RegisterPlayerCallBack = delegate ()
+                    { PlayerController.Instance.CurPlayer = this.transform; };
                 }
-
                 break;
             case ObjectType.Prop:
                 

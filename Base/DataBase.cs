@@ -13,19 +13,36 @@
 *****************************************************************/
 
 using UnityEngine;
-
-public static class DataBase
+namespace Data
 {
-    public static int CurLevel
+
+    public static class DataBase
     {
-        get { return PlayerPrefs.GetInt( "Player_CurLevel" , 1 ); }
-        set { PlayerPrefs.SetInt( "Player_CurLevel" , value ); }
-    }
+        public static int CurLevel
+        {
+            get { return PlayerPrefs.GetInt( "Player_CurLevel" , 1 ); }
+            set { PlayerPrefs.SetInt( "Player_CurLevel" , value ); }
+        }
 
 
-    public static int UnLockedMaxLevel
-    {
-        get { return PlayerPrefs.GetInt( "Player_UnLockedMaxLevel" , 1 ); }
-        set { PlayerPrefs.SetInt( "Player_UnLockedMaxLevel" , value ); }
+        public static int UnLockedMaxLevel
+        {
+            get { return PlayerPrefs.GetInt( "Player_UnLockedMaxLevel" , 1 ); }
+            set { PlayerPrefs.SetInt( "Player_UnLockedMaxLevel" , value ); }
+        }
+
+
+        public static bool SoundOpen
+        {
+            get { return PlayerPrefs.GetInt( "GameSound" , 1 ) == 1; }
+            set { PlayerPrefs.SetInt( "GameSound" , value ? 1 : 0 ); }
+        }
+
+
+        public static int TipsNum
+        {
+            get { return PlayerPrefs.GetInt( "Player_TipsNum" , 0 ); }
+            set { PlayerPrefs.SetInt( "Player_TipsNum" , value ); }
+        }
     }
 }

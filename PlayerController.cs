@@ -5,6 +5,7 @@ using LTool;
 using DG.Tweening;
 using System;
 using Assets.Scripts;
+using Assets.Scripts.Managers;
 
 /// <summary>
 /// 临时用类，主要实现玩家控制
@@ -37,6 +38,9 @@ public class PlayerController : SingletonMono<PlayerController>
             _playerColliderBox = _curPlayer.GetComponentInChildren<BoxCollider>();
         }
     }
+
+    public Action RegisterPlayerCallBack;
+    
     //玩家刚体+碰撞盒
     private Rigidbody _playerRigidBody;
     private BoxCollider _playerColliderBox;
@@ -88,7 +92,7 @@ public class PlayerController : SingletonMono<PlayerController>
     {
         _rayHitArr = new RaycastHit[ 4 ];
         _fixedTimeDelta = Time.fixedDeltaTime;
-
+        
         CalculateControlParam();
     }
 
@@ -196,7 +200,8 @@ public class PlayerController : SingletonMono<PlayerController>
                     {
                         if( ident.type == ObjectType.Points )
                         {
-                            GameController.Instance.EnterLevel( ident.id );
+                            //GameController.Instance.EnterLevel( ident.id );
+                            GameController.Instance.EnterMainMenu();
                         }
                     }
                     StopControlParam();
@@ -239,6 +244,22 @@ public class PlayerController : SingletonMono<PlayerController>
     }
 
 
+    public void Register()
+    {
+        if( RegisterPlayerCallBack != null )
+            RegisterPlayerCallBack();
+    }
+
+
+
+    public void UnRegister()
+    {
+        if( _curPlayer != null )
+            SpawnManager.Instance.DespawnObject( _curPlayer );
+        _curPlayer = null;
+        _playerRigidBody = null;
+        _playerColliderBox = null;
+    }
 
 
 
