@@ -23,6 +23,7 @@ public class UIChooseLevel : BaseUI {
         _btnHome = transform.Find( "Button_Home" ).GetComponent<Button>();
         _btnSound = transform.Find( "Button_Sound" ).GetComponent<Button>();
         _verticalScrollRect = transform.Find( "Loop Vertical Scroll Rect" ).GetComponent<LoopVerticalScrollRect>();
+        _verticalScrollRect.EndDragCallBack = EndDragAction;
     }
 
     private void OnEnable()
@@ -60,5 +61,19 @@ public class UIChooseLevel : BaseUI {
     private void RefreshSoundBtn()
     {
         _btnSound.GetComponent<Image>().sprite = DataModel.Instance.SoundOpen ? sound_On : sound_Off;
+    }
+
+
+    private void EndDragAction()
+    {
+        //var content = _verticalScrollRect.content;
+        //var first = content.GetChild( 1 );
+        //int levelIndex;
+        //if( first.name.Contains( "Level" ) )
+        //    levelIndex = int.Parse( first.name.Split( ' ' )[ 1 ] );
+        //else
+        //    levelIndex = int.Parse( content.GetChild( 2 ).name.Split( ' ' )[ 1 ] );
+
+        //_verticalScrollRect.SrollToCell( levelIndex );
     }
 }

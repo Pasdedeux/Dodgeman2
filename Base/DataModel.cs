@@ -35,6 +35,8 @@ public class DataModel : Singleton<DataModel>
     public int TotalLevelsNum { get; set; }
 
 
+    public int CurrentScrollMaxLevel { get; set; }
+
     /// <summary>
     /// 数据模型初始
     /// </summary>
