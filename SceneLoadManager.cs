@@ -75,8 +75,8 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
         //场景内容加载
         if( targetLevel == 0 )
         {
-            //及时回收原场景中的玩家角色
-            PlayerController.Instance.UnRegister();
+            ////及时回收原场景中的玩家角色
+            //PlayerController.Instance.UnRegister();
 
             yield return sceneprocess = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync( 0 );
 
@@ -115,17 +115,21 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
                 levelClass = _levelInfoDict[ targetLevel ];
             else
             {
-                string filepath = Application.dataPath + string.Format( @"/StreamingAssets/Level_{0}.txt" , targetLevel );
+                string filepath = Application.streamingAssetsPath + string.Format( @"/Level_{0}.txt" , targetLevel );
                 FileInfo fileInfo = new FileInfo( filepath );
                 if( !File.Exists( filepath ) )
                 {
                     Debug.LogError( "关卡 " + targetLevel + " 不存在" );
                     Debug.Log( "<color=green>所有关卡已通关</color>" );
-                    _changeCoroutine = StartCoroutine( IEStartFade( 0 , callBack ) );
+
+                    GameController.Instance.EnterMainMenu();
                     yield break;
                 }
                 using( var fs = fileInfo.OpenText() )
+                {
                     levelClass = JsonMapper.ToObject<LevelClass>( fs.ReadToEnd() );
+                    _levelInfoDict.Add( targetLevel , levelClass );
+                }
             }
 
             GameObject scene = GameObject.Find( "Scene" );
@@ -172,9 +176,11 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
                     item.transform.position = _showingList[ i ].position;
                     item.transform.SetParent( _mainLoadingContainer.transform );
                     item.transform.DOLocalMove( _showingList[ i ].position , RAISE_SPEED ).SetDelay( DELAY_SPEED * i * 0.5f ).SetAutoKill( true );
+
                     _mainPlayer = item;
                     _showingList[ i ].transform = item.transform;
                 }
+                PlayerController.Instance.CurPlayer = _mainPlayer.transform;
             }
             else
             {
@@ -324,17 +330,24 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
             if( _showingList[ i ].transform != null )
                 SpawnManager.Instance.DespawnObject( _showingList[ i ].transform );
 
-        if( PlayerController.Instance.CurPlayer != null )
-            SpawnManager.Instance.DespawnObject( PlayerController.Instance.CurPlayer.transform );
 
         if( _mainPlayer != null )
         {
             SpawnManager.Instance.DespawnObject( _mainPlayer.transform );
             _mainPlayer = null;
         }
+
+        //及时回收原场景中的玩家角色
+        PlayerController.Instance.UnRegister();
+        CloseUI();
     }
 
-
+    private void CloseUI()
+    {
+        UIManager.Instance.Close( GlobalDefine.UINames.Level );
+        UIManager.Instance.Close( GlobalDefine.UINames.MainMenu );
+        UIManager.Instance.Close( GlobalDefine.UINames.LevelChoose );
+    }
 
     private void EnterMainMenu()
     {

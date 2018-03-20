@@ -12,7 +12,7 @@ public class DataModel : Singleton<DataModel>
         set { DataBase.CurLevel = value; }
     }
 
-    public int UnLockedMaxLevel
+    public int CurrentMaxLevel
     {
         get { return DataBase.UnLockedMaxLevel; }
         set { DataBase.UnLockedMaxLevel = value; }
@@ -32,12 +32,27 @@ public class DataModel : Singleton<DataModel>
     }
 
 
+    public int TotalLevelsNum { get; set; }
+
+
     /// <summary>
     /// 数据模型初始
     /// </summary>
     public void InitData()
     {
+        ReadLevelsConfig();
+    }
 
+    private void ReadLevelsConfig()
+    {
+        string filepath = Application.streamingAssetsPath + string.Format( @"/Levels.txt" );
+        System.IO.FileInfo fileInfo = new System.IO.FileInfo( filepath );
+        using( var fs = fileInfo.OpenText() )
+        {
+            var content = fs.ReadToEnd();
+            TotalLevelsNum = content.Split( '|' ).Length;
+        }
+        fileInfo = null;
     }
 
     public void ResetData()

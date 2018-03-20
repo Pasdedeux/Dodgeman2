@@ -1,10 +1,12 @@
-﻿using UnityEngine;
+﻿using Assets.Scripts;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class UIChooseLevel : BaseUI {
 
     public Sprite sound_On, sound_Off;
     private Button _btnHome, _btnSound;
+    private LoopVerticalScrollRect _verticalScrollRect;
 
     private void Awake()
     {
@@ -20,15 +22,16 @@ public class UIChooseLevel : BaseUI {
     {
         _btnHome = transform.Find( "Button_Home" ).GetComponent<Button>();
         _btnSound = transform.Find( "Button_Sound" ).GetComponent<Button>();
+        _verticalScrollRect = transform.Find( "Loop Vertical Scroll Rect" ).GetComponent<LoopVerticalScrollRect>();
     }
 
     private void OnEnable()
     {
         _btnHome.onClick.AddListener( () => { OnClickHome(); } );
         _btnSound.onClick.AddListener( () => { OnClickSound(); } );
+        _verticalScrollRect.totalCount = DataModel.Instance.CurrentMaxLevel * 2+1;
 
         RefreshSoundBtn();
-
     }
 
     private void OnDisable()
@@ -47,6 +50,10 @@ public class UIChooseLevel : BaseUI {
     private void OnClickHome()
     {
         UIManager.Instance.Close( GlobalDefine.UINames.LevelChoose );
+        if( UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != "Main" )
+        {
+            GameController.Instance.EnterMainMenu();
+        }
     }
 
 

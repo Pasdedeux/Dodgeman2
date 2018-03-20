@@ -14,6 +14,7 @@ public class UILevel : BaseUI {
 
     private void Awake()
     {
+        CurrentUIType.isClearPopUp = true;
         CurrentUIType.uiType = UITypeEnum.Fixed;
         CurrentUIType.uiShowMode = UIShowModeEnum.Normal;
 

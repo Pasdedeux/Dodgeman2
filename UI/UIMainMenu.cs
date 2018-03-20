@@ -49,7 +49,9 @@ public class UIMainMenu : BaseUI
     private void OnClickStart()
     {
         UIManager.Instance.Close( GlobalDefine.UINames.MainMenu );
-        GameController.Instance.EnterLevel( DataModel.Instance.CurLevel );
+
+        --DataModel.Instance.CurLevel;
+        PlayerController.Instance.FakeMoveOrder( Vector3.left );
     }
 
     private void OnClickSound()

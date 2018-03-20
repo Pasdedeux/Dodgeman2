@@ -2,7 +2,7 @@
 using UnityEngine.UI;
 using System.Collections;
 
-public class ScrollIndexCallback1 : MonoBehaviour 
+public class ScrollIndexCallbackLine : MonoBehaviour 
 {
     void ScrollCellIndex(int idx)
     {

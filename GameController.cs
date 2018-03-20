@@ -36,6 +36,7 @@ namespace Assets.Scripts
 
         public void EnterLevel( int levelID )
         {
+            UnityEngine.Debug.Log( "[EnterLevel] : " + levelID );
             IsGaming = false;
             SceneLoadManager.Instance.StartFade( levelID , () => 
             {

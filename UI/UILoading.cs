@@ -32,6 +32,7 @@ public class UILoading : BaseUI
         int displayProgress = 0;
 
         int toProgress = 50;
+        DataModel.Instance.InitData();
         //按帧增加
         while( displayProgress < toProgress )
         {

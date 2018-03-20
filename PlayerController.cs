@@ -49,6 +49,7 @@ public class PlayerController : SingletonMono<PlayerController>
     private float _fixedTimeDelta;
     //转向目标方向
     private Vector3 _curCmdDirection = Vector3.zero;
+    //public Vector3 CurCmdDirection { set { _curCmdDirection = value; } }
     //转动轴
     private Vector3 _rotateAxis = Vector3.zero;
     //玩家角色已旋转时间
@@ -87,6 +88,8 @@ public class PlayerController : SingletonMono<PlayerController>
     private static Vector2 DEST_POS = new Vector2();
 
     private bool _isSelfKill = false;
+    private Coroutine _restartWatingCo;
+    private WaitForSeconds _restartWaiting = new WaitForSeconds( 1f );
 
     private void Awake()
     {
@@ -200,17 +203,41 @@ public class PlayerController : SingletonMono<PlayerController>
                     {
                         if( ident.type == ObjectType.Points )
                         {
-                            //GameController.Instance.EnterLevel( ident.id );
-                            GameController.Instance.EnterMainMenu();
+                            Debug.Log( "[CurLevel] : "+ DataModel.Instance.CurLevel );
+                            if( DataModel.Instance.CurLevel == DataModel.Instance.CurrentMaxLevel )
+                            {
+                                if( DataModel.Instance.CurrentMaxLevel < DataModel.Instance.TotalLevelsNum )
+                                {
+                                    DataModel.Instance.CurrentMaxLevel++;
+                                    GameController.Instance.EnterLevel( ++DataModel.Instance.CurLevel );
+                                }
+                                else
+                                {
+                                    //TODO 打通关了 做相应提示
+                                    //..
+                                    GameController.Instance.EnterMainMenu();
+                                }
+                            }
+                            else if( DataModel.Instance.CurLevel < DataModel.Instance.CurrentMaxLevel )
+                            {
+                                GameController.Instance.EnterLevel( ++DataModel.Instance.CurLevel );
+                            }
+                            else
+                            {
+                                //TODO 正常情况下不会走到这里
+                                Debug.LogError( "Extra Error : 1001" );
+                                GameController.Instance.EnterMainMenu();
+                            }
                         }
                     }
                     StopControlParam();
 
                     if( _isSelfKill )
                     {
-                        Debug.Log( "播放坠落动画" );
                         _playerColliderBox.enabled = true;
                         _playerRigidBody.useGravity = true;
+
+                        RestartAfterFalling();
                     }
                 }
             }
@@ -241,6 +268,20 @@ public class PlayerController : SingletonMono<PlayerController>
                 _curPlayer.Rotate( _rotateAxis , _playerRollSpeed * _fixedTimeDelta , Space.World );
             }
         }
+    }
+
+    /// <summary>
+    /// 主界面假移动
+    /// </summary>
+    /// <param name="direction"></param>
+    public void FakeMoveOrder( Vector3 direction  )
+    {
+        if( CanPassDetection( _curPlayer.position , direction , Layers.Target.ToString() ) )
+        {
+            StartControlParam();
+        }
+        _rotateAxis = Quaternion.AngleAxis( -90 , Vector3.up ) * direction;
+        _curCmdDirection = direction;
     }
 
 
@@ -347,6 +388,20 @@ public class PlayerController : SingletonMono<PlayerController>
 
 
 
+    void RestartAfterFalling()
+    {
+        _restartWatingCo = StartCoroutine( IStartFalling() );
+    }
 
+    private IEnumerator IStartFalling()
+    {
+        yield return _restartWaiting;
+        _playerColliderBox.enabled = false;
+        _playerRigidBody.useGravity = false;
+        _playerRigidBody.velocity = Vector3.zero;
+        _playerRigidBody.angularVelocity = Vector3.zero;
 
+        GameController.Instance.EnterLevel( DataModel.Instance.CurLevel );
+        _restartWatingCo = null;
+    }
 }
