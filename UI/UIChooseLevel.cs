@@ -12,7 +12,7 @@ public class UIChooseLevel : BaseUI {
     {
         CurrentUIType.uiType = UITypeEnum.PopUp;
         CurrentUIType.uiShowMode = UIShowModeEnum.Unique;
-        CurrentUIType.uiTransparent = UITransparentEnum.NoPenetratingLow;
+        CurrentUIType.uiTransparent = UITransparentEnum.Penetrating;
 
         InitElements();
 

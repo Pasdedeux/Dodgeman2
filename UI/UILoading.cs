@@ -10,7 +10,7 @@ public class UILoading : BaseUI
     public Text processText;
     public Action<float> ProcessCallFunc;
 
-    private WaitForEndOfFrame _waitFrame;
+    private WaitForSeconds _waitFrame = new WaitForSeconds(0.016f);
 
     private void Awake()
     {
