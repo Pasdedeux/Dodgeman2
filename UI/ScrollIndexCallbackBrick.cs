@@ -2,8 +2,9 @@
 using UnityEngine.UI;
 using System.Collections;
 using Assets.Scripts;
+using DG.Tweening;
 
-public class ScrollIndexCallbackBrick : MonoBehaviour 
+public class ScrollIndexCallbackBrick : MonoBehaviour
 {
     private int _level;
     private Image _btnBg;
@@ -18,16 +19,22 @@ public class ScrollIndexCallbackBrick : MonoBehaviour
     public Sprite spriteUnlockedLevel;
     public Color colorUnlockedText;
 
-    void ScrollCellIndex(int idx)
+    void ScrollCellIndex( int idx )
     {
-        _level = Mathf.CeilToInt( idx * 0.5f ) + 1;
+        _level = Mathf.CeilToInt( idx * 0.5f );
         _txtLevelID.text = _level.ToString();
+        _txtLevelID.enabled = true;
 
-        if( _level <= DataModel.Instance.CurrentMaxLevel )
+        if( _level <= DataModel.Instance.CurrentMaxLevel && _level > 0 )
         {
             _btnBg.sprite = spriteUnlockedLevel;
             _txtLevelID.color = colorUnlockedText;
             _txtLevelID.fontSize = 60;
+        }
+        else if( idx == 0 || idx == UIChooseLevel.totalCount )
+        {
+            _btnBg.sprite = spriteUnlockedLevel;
+            _txtLevelID.enabled = false;
         }
         else
         {
@@ -36,7 +43,13 @@ public class ScrollIndexCallbackBrick : MonoBehaviour
             _txtLevelID.fontSize = 60;
         }
 
-        gameObject.name = "Level " + idx.ToString();
+        gameObject.name = "Level_" + _level.ToString() + "_" + idx;
+
+        if( idx == UIChooseLevel.currentChooseIndex )
+        {
+            transform.GetChild(0).DOScale( Vector3.one * 1.2f , 0.2f );
+            UIChooseLevel.currentSelectItem = transform.GetChild( 0 );
+        }
     }
 
 
@@ -50,8 +63,12 @@ public class ScrollIndexCallbackBrick : MonoBehaviour
 
     private void OnEnable()
     {
-        _btnLevel.onClick.AddListener( () => 
+        _btnLevel.onClick.AddListener( () =>
         {
+            if( _level == 0 || _level > DataModel.Instance.TotalLevelsNum )
+            {
+                return;
+            }
             int level = _level;
             if( level <= DataModel.Instance.CurrentMaxLevel )
             {
@@ -80,8 +97,4 @@ public class ScrollIndexCallbackBrick : MonoBehaviour
 
 
 
-    private void UpdateBtnStatus()
-    {
-        
-    }
 }

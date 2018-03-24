@@ -6,7 +6,7 @@ public class ScrollIndexCallbackLine : MonoBehaviour
 {
     void ScrollCellIndex(int idx)
     {
-        string name = "Line " + idx.ToString();
+        string name = "Line " + Mathf.FloorToInt( idx * 0.5f );
         gameObject.name = name;
     }
 }

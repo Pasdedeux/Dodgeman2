@@ -222,6 +222,9 @@ namespace UnityEngine.UI
         private Vector2 m_PointerStartLocalCursor = Vector2.zero;
         private Vector2 m_ContentStartPosition = Vector2.zero;
 
+        //CallBack after ScrollToCell
+        public Action ScrollOverCallBack;
+
         private RectTransform m_ViewRect;
 
         protected RectTransform viewRect
@@ -361,6 +364,11 @@ namespace UnityEngine.UI
             }
             StopMovement();
             UpdatePrevData();
+            if( ScrollOverCallBack!=null )
+            {
+                ScrollOverCallBack();
+                ScrollOverCallBack = null;
+            }
         }
 
         public void RefreshCells()
@@ -477,7 +485,7 @@ namespace UnityEngine.UI
                 newItem.SetAsFirstSibling();
                 size = Mathf.Max( GetSize( newItem ) , size );
             }
-            threshold = Mathf.Max( threshold , size * 1.5f );
+            threshold = Mathf.Max( threshold , size /** 1.5f*/ );
 
             if( !reverseDirection )
             {
@@ -544,7 +552,7 @@ namespace UnityEngine.UI
                     break;
                 }
             }
-            threshold = Mathf.Max( threshold , size * 1.5f );
+            threshold = Mathf.Max( threshold , size /** 1.5f */);
 
             if( reverseDirection )
             {
@@ -559,11 +567,16 @@ namespace UnityEngine.UI
 
         protected float DeleteItemAtEnd()
         {
-            if( ( ( m_Dragging || m_Velocity != Vector2.zero ) && totalCount >= 0 && itemTypeStart < contentConstraintCount )
-                || content.childCount == 0 )
-            {
-                return 0;
-            }
+            //if( 
+            //    ( 
+            //        ( m_Dragging || m_Velocity != Vector2.zero ) 
+            //        && totalCount >= 0 && itemTypeStart < contentConstraintCount
+            //    )
+            //    || content.childCount == 0 
+            //    )
+            //{
+            //    return 0;
+            //}
 
             float size = 0;
             for( int i = 0; i < contentConstraintCount; i++ )

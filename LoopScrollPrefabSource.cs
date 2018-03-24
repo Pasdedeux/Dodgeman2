@@ -17,7 +17,6 @@ namespace UnityEngine.UI
             //..
 
             go.transform.localScale = Vector3.one;
-            Debug.Log( go.transform.localScale );
             return go;
         }
 
