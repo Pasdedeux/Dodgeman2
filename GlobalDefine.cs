@@ -26,6 +26,7 @@ class GlobalDefine
         public const string MainMenu = "UI_StartMenu";
         public const string Level = "UI_Level";
         public const string LevelChoose = "UI_LevelChoose";
+        public const string TipsConfirm = "UI_TipsConfirm";
 
         //滚动列表子元素
         public const string Child_LevelBrick = "Panel_Child_LevelBrick";

@@ -38,6 +38,7 @@ namespace Assets.Scripts
         {
             UnityEngine.Debug.Log( "[EnterLevel] : " + levelID );
             IsGaming = false;
+            DataModel.Instance.gameCount++;
             SceneLoadManager.Instance.StartFade( levelID , () => 
             {
                 PlayerController.Instance.Register();

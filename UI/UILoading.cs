@@ -53,10 +53,10 @@ public class UILoading : BaseUI
         }
 
         toProgress = 90;
-        ////UnityAds广告初始化
-        //UnityAds.Instance.Init();
-        ////Admob广告初始化
-        //AdmobAds.Instance.Init();
+        //UnityAds广告初始化
+        UnityAds.Instance.Init();
+        //Admob广告初始化
+        AdmobAds.Instance.Init();
         yield return _waitFrame;
         while( displayProgress < toProgress )
         {

@@ -3,10 +3,12 @@ using UnityEngine.UI;
 using System.Collections;
 using Assets.Scripts;
 using DG.Tweening;
+using System;
 
 public class ScrollIndexCallbackBrick : MonoBehaviour
 {
-    private int _level;
+    private int _level;                 //关卡等级标号
+    private int _idx;                   //关卡索引标号
     private Image _btnBg;
     private Text _txtLevelID;
     private Button _btnLevel;
@@ -21,6 +23,7 @@ public class ScrollIndexCallbackBrick : MonoBehaviour
 
     void ScrollCellIndex( int idx )
     {
+        _idx = idx;
         _level = Mathf.CeilToInt( idx * 0.5f );
         _txtLevelID.text = _level.ToString();
         _txtLevelID.enabled = true;
@@ -47,7 +50,7 @@ public class ScrollIndexCallbackBrick : MonoBehaviour
 
         if( idx == UIChooseLevel.currentChooseIndex )
         {
-            transform.GetChild(0).DOScale( Vector3.one * 1.2f , 0.2f );
+            transform.GetChild( 0 ).DOScale( Vector3.one * 1.2f , 0.2f );
             UIChooseLevel.currentSelectItem = transform.GetChild( 0 );
         }
     }
@@ -58,6 +61,7 @@ public class ScrollIndexCallbackBrick : MonoBehaviour
         _btnBg = transform.Find( "Button_LevelBG" ).GetComponent<Image>();
         _txtLevelID = transform.Find( "Text_LevelID" ).GetComponent<Text>();
         _btnLevel = transform.Find( "Button_LevelBG" ).GetComponent<Button>();
+
     }
 
 
@@ -69,6 +73,13 @@ public class ScrollIndexCallbackBrick : MonoBehaviour
             {
                 return;
             }
+
+            if( _idx != UIChooseLevel.currentChooseIndex )
+            {
+                SimulateEndDrag();
+                return;
+            }
+
             int level = _level;
             if( level <= DataModel.Instance.CurrentMaxLevel )
             {
@@ -89,6 +100,21 @@ public class ScrollIndexCallbackBrick : MonoBehaviour
         } );
     }
 
+    private void SimulateEndDrag()
+    {
+        //缩回现有的
+        UIChooseLevel.currentSelectItem.DOScale( Vector3.one , 0.2f );
+
+        //当前应该放大的元素标号，用于初始化
+        UIChooseLevel.currentChooseIndex = _idx;
+
+        UIChooseLevel.VerticalScrollRect.SrollToCell( _idx - 2 );
+        UIChooseLevel.VerticalScrollRect.ScrollOverCallBack = () =>
+        {
+            transform.GetChild( 0 ).DOScale( Vector3.one * 1.2f , 0.2f );
+            UIChooseLevel.currentSelectItem = transform.GetChild( 0 );
+        };
+    }
 
     private void OnDisable()
     {

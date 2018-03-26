@@ -69,7 +69,10 @@ public class Identity : MonoBehaviour
                 }
                 break;
             case ObjectType.Points:
-
+                if( pointsType == PointsType.TransferPointExit )
+                {
+                    PlayerController.Instance.FaceTerminal = transform.position;
+                }
                 break;
             case ObjectType.Roles:
                 if( rolesType == RolesType.Player )

@@ -41,7 +41,7 @@ namespace Data
 
         public static int TipsNum
         {
-            get { return PlayerPrefs.GetInt( "Player_TipsNum" , 0 ); }
+            get { return PlayerPrefs.GetInt( "Player_TipsNum" , 9 ); }
             set { PlayerPrefs.SetInt( "Player_TipsNum" , value ); }
         }
     }

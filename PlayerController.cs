@@ -26,6 +26,7 @@ public class PlayerController : SingletonMono<PlayerController>
 
     #endregion
 
+    public Vector3 FaceTerminal { get; set; }
     
     private Transform _curPlayer;
     public Transform CurPlayer
@@ -403,5 +404,14 @@ public class PlayerController : SingletonMono<PlayerController>
 
         GameController.Instance.EnterLevel( DataModel.Instance.CurLevel );
         _restartWatingCo = null;
+    }
+
+
+
+    
+    public void CheckDirection2Face()
+    {
+
+        CurPlayer.transform.LookAt( FaceTerminal );
     }
 }

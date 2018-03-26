@@ -8,12 +8,11 @@ public class UIChooseLevel : BaseUI
 {
 
     public static int totalCount, currentChooseIndex = 2;//关卡值被指为双数
+    public static LoopVerticalScrollRect VerticalScrollRect { get; set; }
     public static Transform currentSelectItem;
 
     public Sprite sound_On, sound_Off;
-
     private Button _btnHome, _btnSound;
-    private LoopVerticalScrollRect _verticalScrollRect;
 
     private void Awake()
     {
@@ -29,9 +28,9 @@ public class UIChooseLevel : BaseUI
     {
         _btnHome = transform.Find( "Button_Home" ).GetComponent<Button>();
         _btnSound = transform.Find( "Button_Sound" ).GetComponent<Button>();
-        _verticalScrollRect = transform.Find( "Loop Vertical Scroll Rect" ).GetComponent<LoopVerticalScrollRect>();
-        _verticalScrollRect.EndDragCallBack = EndDragAction;
-        _verticalScrollRect.BeginDragCallBack = BeginDragAction;
+        VerticalScrollRect = transform.Find( "Loop Vertical Scroll Rect" ).GetComponent<LoopVerticalScrollRect>();
+        VerticalScrollRect.EndDragCallBack = EndDragAction;
+        VerticalScrollRect.BeginDragCallBack = BeginDragAction;
     }
 
 
@@ -40,9 +39,9 @@ public class UIChooseLevel : BaseUI
     {
         _btnHome.onClick.AddListener( () => { OnClickHome(); } );
         _btnSound.onClick.AddListener( () => { OnClickSound(); } );
-        _verticalScrollRect.totalCount = ( DataModel.Instance.CurrentMaxLevel + 1 ) * 2 + 1;
+        VerticalScrollRect.totalCount = 15;// ( DataModel.Instance.CurrentMaxLevel + 1 ) * 2 + 1;
 
-        totalCount = _verticalScrollRect.totalCount;
+        totalCount = VerticalScrollRect.totalCount;
 
         RefreshSoundBtn();
     }
@@ -78,7 +77,7 @@ public class UIChooseLevel : BaseUI
 
     private void EndDragAction()
     {
-        var content = _verticalScrollRect.content;
+        var content = VerticalScrollRect.content;
         var last = content.GetChild( content.childCount - 1 );
         int levelIndex;
         if( last.name.Contains( "Level" ) )
@@ -94,8 +93,8 @@ public class UIChooseLevel : BaseUI
         //当前应该放大的元素标号，用于初始化
         currentChooseIndex = int.Parse( currentSelectItem.parent.name.Split( '_' )[ 2 ] );
 
-        _verticalScrollRect.SrollToCell( levelIndex - 4 );
-        _verticalScrollRect.ScrollOverCallBack = () =>
+        VerticalScrollRect.SrollToCell( levelIndex - 4 );
+        VerticalScrollRect.ScrollOverCallBack = () =>
         {
             currentSelectItem.DOScale( Vector3.one * 1.2f , 0.2f );
         };

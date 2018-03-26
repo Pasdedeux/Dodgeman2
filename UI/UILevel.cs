@@ -48,6 +48,12 @@ public class UILevel : BaseUI {
     }
 
 
+    public override void Update()
+    {
+        RefreshTipsNum();
+    }
+
+
 
     private void OnClickRestart()
     {
@@ -62,7 +68,15 @@ public class UILevel : BaseUI {
 
     private void OnClickTips()
     {
-        throw new NotImplementedException();
+        if( DataModel.Instance.TipsNum>0 )
+        {
+
+            DataModel.Instance.TipsNum--;
+        }
+        else
+        {
+            var tips = UIManager.Instance.Show( GlobalDefine.UINames.TipsConfirm ) as Assets.Scripts.UI.UITips;
+        }
     }
 
     private void RefreshTipsNum()

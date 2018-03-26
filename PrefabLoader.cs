@@ -16,6 +16,7 @@ public class PrefabLoader : Singleton<PrefabLoader>
         _prefabList.Add( GlobalDefine.UINames.MainMenu , Resources.Load<GameObject>( "UI/Panel_MainMenu" ) );
         _prefabList.Add( GlobalDefine.UINames.Level , Resources.Load<GameObject>( "UI/Panel_Level" ) );
         _prefabList.Add( GlobalDefine.UINames.LevelChoose , Resources.Load<GameObject>( "UI/Panel_LevelChoose" ) );
+        _prefabList.Add( GlobalDefine.UINames.TipsConfirm , Resources.Load<GameObject>( "UI/Panel_Tips" ) );
     }
 
     public GameObject GetPrefab( string prefabName )

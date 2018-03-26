@@ -22,6 +22,7 @@ namespace Assets.Scripts
 {
     class AppStart:MonoBehaviour
     {
+        
         private void Awake()
         {
             DontDestroyOnLoad( this );

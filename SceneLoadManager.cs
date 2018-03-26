@@ -16,8 +16,10 @@ using DG.Tweening;
 public class SceneLoadManager : SingletonMono<SceneLoadManager>
 {
     private Dictionary<int , LevelClass> _levelInfoDict = new Dictionary<int , LevelClass>();
+    private bool _admobPlayOver = false;
     //转场背景时间
     public Image fadeBG;
+    public Text levelContent;
     //主摄
     public Camera mainCam;
 
@@ -37,6 +39,7 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
     private GameObject _loadingEnemy;
 
     private WaitForSeconds _waitTime;
+    private WaitForSeconds _waitShowLevelTime;
     private WaitForEndOfFrame _waitFrame;
 
     private const float RAISE_SPEED = 0.2f;
@@ -50,9 +53,11 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
 
         _waitTime = new WaitForSeconds( 0.5f );
         _waitFrame = new WaitForEndOfFrame();
+        _waitShowLevelTime = new WaitForSeconds( 1f );
 
         _camOffset = mainCam.transform.position;
 
+        levelContent.enabled = false;
         DontDestroyOnLoad( this );
     }
 
@@ -101,9 +106,22 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
                 InitLoading3DBar();
                 _needCameraFollow = true;
             }
+
+            yield return _waitTime;
         }
         else
         {
+            //显示关卡
+            levelContent.enabled = true;
+            levelContent.text = targetLevel.ToString();
+
+            if( DataModel.Instance.gameCount % GameManager.Instance.unityAds_Interval == 0 ) 
+            {
+                _admobPlayOver = false;
+                AdmobAds.Instance.callBack = AdmobAdsPlayOver;
+                yield return new WaitUntil( () => { return _admobPlayOver; } );
+            }
+
             //跳到关卡
             yield return sceneprocess = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync( 1 );
 
@@ -139,9 +157,15 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
             var rootChildList = levelClass.leveCellList;
             for( int k = 0; k < rootChildList.Count; k++ )
                 DetectAllChildrenLoad( null , rootChildList[ k ] );
+
+            ////关卡玩家朝向检测
+            //PlayerController.Instance.CheckDirection2Face();
+            
+            yield return _waitShowLevelTime;
+
+            levelContent.enabled = false;
         }
 
-        yield return _waitTime;
 
         fadeBG.CrossFadeAlpha( 0 , 0.5f , true );
 
@@ -180,6 +204,7 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
                     _mainPlayer = item;
                     _showingList[ i ].transform = item.transform;
                 }
+                _mainPlayer.transform.GetChild( 0 ).rotation = Quaternion.Euler( new Vector3( 0 , 270 , 0 ) );
                 PlayerController.Instance.CurPlayer = _mainPlayer.transform;
             }
             else
@@ -196,7 +221,7 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
     private void InitLoading3DBar()
     {
         //Loading======================================
-        int n = 7, m = 0;
+        int n = 8, m = 0;
         while( m <= n )
         {
             var floor = PrefabLoader.Instance.GetPrefab( GlobalDefine.PrefabNames.Floor );
@@ -211,7 +236,7 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
             if( m > 1 )
             {
                 floor.transform.position -= DOWN_DISTANCE * Vector3.up;
-                floor.transform.DOLocalMove( m * Vector3.right , RAISE_SPEED ).SetDelay( 0.3f + DELAY_SPEED * m ).SetAutoKill( true );
+                floor.transform.DOLocalMove( m * Vector3.right , RAISE_SPEED ).SetDelay( 0.1f + DELAY_SPEED * m ).SetAutoKill( true );
             }
             _loadingList.Add( floor );
             m++;
@@ -239,6 +264,7 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
         _mainPlayer = PrefabLoader.Instance.GetPrefab( GlobalDefine.PrefabNames.Man );
         _mainPlayer.transform.position = Vector3.up;
         _mainPlayer.transform.SetParent( _mainLoadingContainer.transform );
+        _mainPlayer.transform.GetChild( 0 ).rotation = Quaternion.Euler( new Vector3( 0 , 270 , 0 ) );
 
         _loadingStartPos = _mainPlayer.transform.position;
         _loadingEndPos = _loadingList[ _loadingList.Count - 1 ].transform.position; //终点取loading终点下移一格位置，因最终格子已下沉，无法用于定位
@@ -264,10 +290,13 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
         }
         else
             go = new GameObject();
-        //go.name = levelCell.name;
+        go.name = levelCell.name;
         go.transform.position = new Vector3( ( float )levelCell.px , ( float )levelCell.py , ( float )levelCell.pz );
         go.transform.localScale = new Vector3( ( float )levelCell.sx , ( float )levelCell.sy , ( float )levelCell.sz );
-        go.transform.rotation = Quaternion.Euler( new Vector3( ( float )levelCell.rx , ( float )levelCell.ry , ( float )levelCell.rz ) );
+        if( levelCell.type == ObjectType.Roles && levelCell.roleType == RolesType.Player )
+            go.transform.GetChild( 0 ).rotation = Quaternion.Euler( new Vector3( ( float )levelCell.rx , ( float )levelCell.ry , ( float )levelCell.rz ) );
+        else
+            go.transform.rotation = Quaternion.Euler( new Vector3( ( float )levelCell.rx , ( float )levelCell.ry , ( float )levelCell.rz ) );
 
         if( parent != null )
             go.transform.parent = parent;
@@ -283,6 +312,11 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
 
     private void ShowLoadingProgress( float ratio )
     {
+
+        _trueRotationByAngle = ( _totalRotationByAngle * ratio ) % 180;
+        _mainPlayer.transform.position = Vector3.Lerp( _loadingStartPos , _loadingEndPos , ratio );
+        _mainPlayer.transform.rotation = Quaternion.Euler( 0 , 0 , -_trueRotationByAngle + Mathf.Floor( _totalRotationByAngle * ratio / 180 ) * 180 );
+
         if( ratio == 1 )
         {
             _needCameraFollow = false;
@@ -291,10 +325,6 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
 
             EnterMainMenu();
         }
-
-        _trueRotationByAngle = ( _totalRotationByAngle * ratio ) % 180;
-        _mainPlayer.transform.position = Vector3.Lerp( _loadingStartPos , _loadingEndPos , ratio );
-        _mainPlayer.transform.rotation = Quaternion.Euler( 0 , 0 , -_trueRotationByAngle + Mathf.Floor( _totalRotationByAngle * ratio / 180 ) * 180 );
     }
 
 
@@ -356,6 +386,14 @@ public class SceneLoadManager : SingletonMono<SceneLoadManager>
 
         InitMain3DBar();
         mainCam.transform.DOLocalMoveX( _mainPlayer.transform.position.x + 5 , 0.5f ).SetAutoKill( true );
+    }
+
+
+
+
+    private void AdmobAdsPlayOver()
+    {
+        _admobPlayOver = true;
     }
 }
 

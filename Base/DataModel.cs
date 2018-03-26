@@ -37,12 +37,18 @@ public class DataModel : Singleton<DataModel>
 
     public int CurrentScrollMaxLevel { get; set; }
 
+
+    public int gameCount = 0;
+
+
     /// <summary>
     /// 数据模型初始
     /// </summary>
     public void InitData()
     {
         ReadLevelsConfig();
+
+        gameCount = 0;
     }
 
     private void ReadLevelsConfig()
